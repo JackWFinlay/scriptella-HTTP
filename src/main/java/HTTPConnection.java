@@ -1,12 +1,9 @@
 /**
  * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
  */
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.util.Key;
 import scriptella.spi.*;
 
 import java.io.IOException;
@@ -21,18 +18,21 @@ public class HTTPConnection extends AbstractConnection {
     public HTTPConnection () {} // Override default constructor
 
     public HTTPConnection( ConnectionParameters connectionParameters ){
-        super(connectionParameters);
-        HOST = connectionParameters.getStringProperty("hostname");
+        HOST = connectionParameters.getStringProperty("url");
         TYPE = connectionParameters.getStringProperty("type");
-        BODY = connectionParameters.getStringProperty("body");
         TIME_OUT = connectionParameters.getIntegerProperty("timeout");
-
-
 
     }
 
     @Override
     public void executeScript(Resource resource, ParametersCallback parametersCallback) throws ProviderException {
+
+
+    }
+
+    @Override
+    public void executeQuery(Resource resource, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
+        //return HTTP with body contents
         HttpRequestFactory requestFactory =
                 HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
                     @Override
@@ -42,23 +42,24 @@ public class HTTPConnection extends AbstractConnection {
                 });
 
         HttpRequest request;
+
+        HTTPUrl url = new HTTPUrl(HOST);
+        //url.fields =
+
         try {
-            request = requestFactory.buildGetRequest(generateGetRequestURL());
-            request.execute();
+            if (TYPE.equals("GET")) {
+
+                request = requestFactory.buildGetRequest(url);
+            } else if (TYPE.equals("POST")) {
+
+                //request = requestFactory.buildPostRequest(HOST, new HttpCo);
+            }
+
+            //HttpResponse httpResponse = request.execute();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-    }
-
-    @Override
-    public void executeQuery(Resource resource, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
-        //return HTTP with body contents
-    }
-
-    private GenericUrl generateGetRequestURL() {
-        return new GenericUrl(HOST + "?" + BODY);
-
     }
 
 
@@ -67,6 +68,15 @@ public class HTTPConnection extends AbstractConnection {
 
     }
 
+    public static class HTTPUrl extends GenericUrl {
+
+        public HTTPUrl(String encodedUrl) {
+            super(encodedUrl);
+        }
+
+        @Key
+        public String fields;
+    }
 
 
 }
