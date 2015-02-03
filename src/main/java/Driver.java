@@ -1,5 +1,5 @@
 /**
- * @Author Jack W Finlay. jfin404@aucklanduni.ac.nz
+ * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
  *
  */
 
