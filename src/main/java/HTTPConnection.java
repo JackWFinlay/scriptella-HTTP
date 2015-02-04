@@ -4,6 +4,8 @@
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.Key;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scriptella.spi.*;
 
 import java.io.IOException;
@@ -13,7 +15,10 @@ public class HTTPConnection extends AbstractConnection {
     private String BODY;
     private String TYPE;
     private int    TIME_OUT;
-    private final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    private final  HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    private HttpResponse httpResponse;
+
+    Logger logger = LoggerFactory.getLogger("HttpConnection");
 
     public HTTPConnection () {} // Override default constructor
 
@@ -25,14 +30,17 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     @Override
-    public void executeScript(Resource resource, ParametersCallback parametersCallback) throws ProviderException {
-
-
+    public void executeScript(Resource scriptContent, ParametersCallback parametersCallback) throws ProviderException {
+        run(scriptContent);
     }
 
     @Override
-    public void executeQuery(Resource resource, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
+    public void executeQuery(Resource queryContent, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
         //return HTTP with body contents
+    }
+
+    private void run(Resource resource){
+
         HttpRequestFactory requestFactory =
                 HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
                     @Override
@@ -44,24 +52,28 @@ public class HTTPConnection extends AbstractConnection {
         HttpRequest request;
 
         HTTPUrl url = new HTTPUrl(HOST);
-        //url.fields =
 
         try {
             if (TYPE.equals("GET")) {
+                url.fields = resource.toString();
 
+                logger.info("Query URL: {}", url );
                 request = requestFactory.buildGetRequest(url);
-            } else if (TYPE.equals("POST")) {
+            } else { //if (TYPE.equals("POST")) {
 
-                //request = requestFactory.buildPostRequest(HOST, new HttpCo);
+                HttpContent httpContent = (HttpContent) resource;
+
+                request = requestFactory.buildPostRequest(url, httpContent);
+                logger.info("Request response: {}", request.toString());
             }
 
-            //HttpResponse httpResponse = request.execute();
+            httpResponse = request.execute();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
 
+    }
 
     @Override
     public void close(){
