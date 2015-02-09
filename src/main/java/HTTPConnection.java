@@ -92,9 +92,10 @@ public class HTTPConnection extends AbstractConnection {
 
         try {
             if (TYPE.toUpperCase().equals("GET")) {
-                //url.fields = ((StringResource)resource).getString();
+
                 BufferedReader br = new BufferedReader(new StringReader(((StringResource)resource).getString()));
                 String line;
+
                 while ((line = br.readLine()) != null) {
                     String [] components = line.split("=");
                     url.put(components[0],components[1]);
