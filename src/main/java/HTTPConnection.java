@@ -105,11 +105,12 @@ public class HTTPConnection extends AbstractConnection {
                 request = requestFactory.buildGetRequest(url);
             } else { //if (TYPE.equals("POST")) {
 
-                HttpContent httpContent = ByteArrayContent.fromString(null, ((StringResource)resource).getString());
+                String body = ((StringResource)resource).getString().replace("\n","&");
+                logger.info("body = {}", body);
+                HttpContent httpContent = ByteArrayContent.fromString("application/x-www-form-urlencoded boundary=&", body);
 
                 request = requestFactory.buildPostRequest(url, httpContent);
                 logger.info("Query URL: {}", url );
-                logger.info("Request contents: {}", request.getContent().toString());
             }
 
             httpResponse = request.execute();

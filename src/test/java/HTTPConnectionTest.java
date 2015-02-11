@@ -56,7 +56,9 @@ public class HTTPConnectionTest {
         System.out.println("Test2");
         httpConnection.setTYPE("POST");
 
-        resource = new StringResource("test", "testtest");
+        resource = new StringResource("abc=123\n" +
+                                    "def=456\n" +
+                                    "ghi=789");
 
         httpConnection.executeScript(resource,parametersCallback);
     }
