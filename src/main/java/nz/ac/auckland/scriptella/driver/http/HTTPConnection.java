@@ -1,14 +1,12 @@
-/**
+package nz.ac.auckland.scriptella.driver.http; /**
  * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
  */
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.util.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scriptella.configuration.StringResource;
 import scriptella.spi.*;
-import scriptella.util.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,55 +14,29 @@ import java.io.StringReader;
 
 public class HTTPConnection extends AbstractConnection {
 
-    private String HOST;
-    private String BODY;
-    private String TYPE;
-    private int    TIME_OUT;
-    private final  HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    private String host;
+    private String type;
+    private int timeOut;
+    private final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
     private HttpResponse httpResponse;
 
     Logger logger = LoggerFactory.getLogger("HttpConnection");
 
     public HTTPConnection () {} // Override default constructor
 
+    public HTTPConnection (String host, String type, int timeOut) {
+        this.host = host;
+        this.type = type;
+        this.timeOut = timeOut;
+    }
+
     public HTTPConnection( ConnectionParameters connectionParameters ){
-        HOST = connectionParameters.getStringProperty("url");
-        TYPE = connectionParameters.getStringProperty("type");
-        TIME_OUT = connectionParameters.getIntegerProperty("timeout");
+        host = connectionParameters.getStringProperty("url");
+        type = connectionParameters.getStringProperty("type");
+        timeOut = connectionParameters.getIntegerProperty("timeout");
 
     }
 
-    public int getTIME_OUT() {
-        return TIME_OUT;
-    }
-
-    public void setTIME_OUT(int TIME_OUT) {
-        this.TIME_OUT = TIME_OUT;
-    }
-
-    public String getHOST() {
-        return HOST;
-    }
-
-    public void setHOST(String HOST) {
-        this.HOST = HOST;
-    }
-
-    public String getBODY() {
-        return BODY;
-    }
-
-    public void setBODY(String BODY) {
-        this.BODY = BODY;
-    }
-
-    public String getTYPE() {
-        return TYPE;
-    }
-
-    public void setTYPE(String TYPE) {
-        this.TYPE = TYPE;
-    }
 
     @Override
     public void executeScript(Resource scriptContent, ParametersCallback parametersCallback) throws ProviderException {
@@ -82,16 +54,16 @@ public class HTTPConnection extends AbstractConnection {
                 HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
                     @Override
                     public void initialize(HttpRequest request) {
-                        request.setConnectTimeout(TIME_OUT);
+                        request.setConnectTimeout(timeOut);
                     }
                 });
 
         HttpRequest request;
 
-        HTTPUrl url = new HTTPUrl(HOST);
+        GenericUrl url = new GenericUrl(host);
 
         try {
-            if (TYPE.toUpperCase().equals("GET")) {
+            if (type.toUpperCase().equals("GET")) {
 
                 BufferedReader br = new BufferedReader(new StringReader(((StringResource)resource).getString()));
                 String line;
@@ -105,9 +77,12 @@ public class HTTPConnection extends AbstractConnection {
                 request = requestFactory.buildGetRequest(url);
             } else { //if (TYPE.equals("POST")) {
 
-                String body = ((StringResource)resource).getString().replace("\n","&");
-                logger.info("body = {}", body);
-                HttpContent httpContent = ByteArrayContent.fromString("application/x-www-form-urlencoded boundary=&", body);
+                String contents = ((StringResource)resource).getString().replace("\n","&");
+                // Cast to StringResource as Resource's toString() implementation is rubbish.
+
+                logger.info("body = {}", contents);
+
+                HttpContent httpContent = ByteArrayContent.fromString("application/x-www-form-urlencoded boundary=&", contents);
 
                 request = requestFactory.buildPostRequest(url, httpContent);
                 logger.info("Query URL: {}", url );
@@ -118,25 +93,12 @@ public class HTTPConnection extends AbstractConnection {
             logger.info("Response: {}", httpResponse.parseAsString());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error: ", e);
         }
 
     }
 
     @Override
-    public void close(){
-
-    }
-
-    public static class HTTPUrl extends GenericUrl {
-
-        public HTTPUrl(String encodedUrl) {
-            super(encodedUrl);
-        }
-
-        @Key
-        public String fields;
-    }
-
+    public void close(){}
 
 }

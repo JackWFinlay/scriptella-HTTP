@@ -1,16 +1,12 @@
+package nz.ac.auckland.scriptella.driver.http;
+
+import nz.ac.auckland.scriptella.driver.http.HTTPConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import scriptella.configuration.StringResource;
-import scriptella.driver.script.ParametersCallbackMap;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 public class HTTPConnectionTest {
 
@@ -20,9 +16,7 @@ public class HTTPConnectionTest {
 
     @Before
     public void setUp() throws Exception {
-        httpConnection = new HTTPConnection();
-        httpConnection.setHOST("http://127.0.0.1:8080");
-        httpConnection.setTIME_OUT(9999);
+
         parametersCallback = new ParametersCallback() {
             @Override
             public Object getParameter(String s) {
@@ -41,7 +35,7 @@ public class HTTPConnectionTest {
     public void testExecuteScript_GET(){
 
         System.out.println("Test1");
-        httpConnection.setTYPE("GET");
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET", 500);
 
         resource = new StringResource("abc=123\n" +
                                     "def=456\n" +
@@ -54,7 +48,7 @@ public class HTTPConnectionTest {
     public void testExecuteScript_POST(){
 
         System.out.println("Test2");
-        httpConnection.setTYPE("POST");
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", 500);
 
         resource = new StringResource("abc=123\n" +
                                     "def=456\n" +

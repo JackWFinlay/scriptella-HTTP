@@ -1,7 +1,10 @@
-/**
+package nz.ac.auckland.scriptella.driver.http; /**
  * Created by Jack on 10/02/2015.
  */
-import nz.ac.auckland.morc.*;
+
+import nz.ac.auckland.morc.MorcTestBuilder;
+import nz.ac.auckland.morc.TestBean;
+import nz.ac.auckland.scriptella.driver.http.HTTPConnection;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import scriptella.configuration.StringResource;
@@ -16,9 +19,7 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
         final ParametersCallback parametersCallback;
 
 
-        httpConnection = new HTTPConnection();
-        httpConnection.setHOST("http://127.0.0.1:8080");
-        httpConnection.setTIME_OUT(9999);
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", 500);
         parametersCallback = new ParametersCallback() {
             @Override
             public Object getParameter(String s) {
@@ -32,8 +33,6 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
             public void run() throws Exception {
 
                 System.out.println("Test2");
-                httpConnection.setTYPE("POST");
-
                 Resource resource = new StringResource("abc=123\n" +
                                                         "def=456\n" +
                                                         "ghi=789");
