@@ -49,7 +49,6 @@ public class HTTPConnection extends AbstractConnection {
         host = connectionParameters.getStringProperty("url");
         type = connectionParameters.getStringProperty("type");
         timeOut = connectionParameters.getIntegerProperty("timeout");
-
     }
 
 
@@ -92,11 +91,6 @@ public class HTTPConnection extends AbstractConnection {
             }
 
             logger.info("Response Status: {}", httpResponse.getStatusLine().getStatusCode());
-            BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-            String l= "";
-            while ((l = rd.readLine()) != null) {
-                System.out.println(l);
-            }
 
         } catch (HttpException e) {
             logger.error("HTTP Error: ",e);
@@ -127,7 +121,7 @@ public class HTTPConnection extends AbstractConnection {
                 nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IO exception: ", e);
         }
 
         return nameValuePairList;
