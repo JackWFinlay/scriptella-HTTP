@@ -1,6 +1,5 @@
 package nz.ac.auckland.scriptella.driver.http;
 
-import nz.ac.auckland.scriptella.driver.http.HTTPConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +41,7 @@ public class HTTPConnectionTest {
                                     "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
+
     }
 
     @Test
