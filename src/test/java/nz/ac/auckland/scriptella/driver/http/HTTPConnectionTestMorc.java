@@ -15,11 +15,9 @@ import scriptella.spi.Resource;
 
 public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
-    public void configure(){
+    public void configure() {
 
         final ParametersCallback parametersCallback;
-
-
 
         parametersCallback = new ParametersCallback() {
             @Override
@@ -27,7 +25,6 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
                 return null;
             }
         };
-
 
         syncTest("script GET test", new TestBean() {
             @Override

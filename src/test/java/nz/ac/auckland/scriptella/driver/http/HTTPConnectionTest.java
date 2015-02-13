@@ -36,29 +36,29 @@ public class HTTPConnectionTest {
     }
 
     @Test
-    public void testExecuteScript_GET(){
+    public void testExecuteScript_GET() {
 
         System.out.println("Test1");
         httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET", 500);
 
         resource = new StringResource("abc=123\n" +
-                                    "def=456\n" +
-                                    "ghi=789");
+                "def=456\n" +
+                "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
 
     }
 
     @Test
-    public void testExecuteScript_POST(){
+    public void testExecuteScript_POST() {
 
         System.out.println("Test2");
         httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", 500);
 
         resource = new StringResource("abc=123\n" +
-                                    "def=456\n" +
-                                    "ghi=789");
+                "def=456\n" +
+                "ghi=789");
 
-        httpConnection.executeScript(resource,parametersCallback);
+        httpConnection.executeScript(resource, parametersCallback);
     }
 }

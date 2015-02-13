@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scriptella.configuration.StringResource;
 import scriptella.spi.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,7 +39,8 @@ public class HTTPConnection extends AbstractConnection {
 
     Logger logger = LoggerFactory.getLogger("HttpConnection");
 
-    public HTTPConnection() {} // Override default constructor
+    public HTTPConnection() {
+    } // Override default constructor
 
     public HTTPConnection(String host, String type, int timeOut) {
         this.host = host;
@@ -46,7 +48,7 @@ public class HTTPConnection extends AbstractConnection {
         this.timeOut = timeOut;
     }
 
-    public HTTPConnection(ConnectionParameters connectionParameters){
+    public HTTPConnection(ConnectionParameters connectionParameters) {
         host = connectionParameters.getStringProperty("url");
         type = connectionParameters.getStringProperty("type");
         timeOut = connectionParameters.getIntegerProperty("timeout");
@@ -60,12 +62,12 @@ public class HTTPConnection extends AbstractConnection {
 
     @Override
     public void executeQuery(Resource resource, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
-
+        throw new NotImplementedException();
     }
 
-    private void run(Resource resource){
+    private void run(Resource resource) {
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(timeOut )
+                .setConnectTimeout(timeOut)
                 .setConnectionRequestTimeout(timeOut)
                 .setSocketTimeout(timeOut).build();
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
@@ -94,11 +96,11 @@ public class HTTPConnection extends AbstractConnection {
             logger.info("Response Status: {}", httpResponse.getStatusLine().getStatusCode());
 
         } catch (HttpException e) {
-            logger.error("HTTP Error: ",e);
+            logger.error("HTTP Error: ", e);
         } catch (IOException e) {
             logger.error("IO Error: ", e);
         } catch (URISyntaxException e) {
-            logger.error("URI Error: ",e);
+            logger.error("URI Error: ", e);
         } finally {
             if (httpGet != null) {
                 httpGet.releaseConnection();
@@ -110,15 +112,15 @@ public class HTTPConnection extends AbstractConnection {
 
     }
 
-    private List<NameValuePair> generateParams( Resource resource){
-        BufferedReader br = new BufferedReader(new StringReader(((StringResource)resource).getString()));
+    private List<NameValuePair> generateParams(Resource resource) {
+        BufferedReader br = new BufferedReader(new StringReader(((StringResource) resource).getString()));
         String line;
 
         List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>(1);
 
         try {
             while ((line = br.readLine()) != null) {
-                String [] components = line.split("=");
+                String[] components = line.split("=");
                 nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
             }
         } catch (IOException e) {
