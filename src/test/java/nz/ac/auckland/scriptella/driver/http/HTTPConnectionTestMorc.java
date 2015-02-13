@@ -1,5 +1,8 @@
-package nz.ac.auckland.scriptella.driver.http; /**
- * Created by Jack on 10/02/2015.
+package nz.ac.auckland.scriptella.driver.http;
+
+/**
+ * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
  */
 
 import nz.ac.auckland.morc.MorcTestBuilder;

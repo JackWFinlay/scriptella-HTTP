@@ -1,8 +1,10 @@
 package nz.ac.auckland.scriptella.driver.http;
 
 /**
- * Created by Jack on 13/02/2015.
+ * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
  */
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -21,7 +23,6 @@ import scriptella.spi.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;

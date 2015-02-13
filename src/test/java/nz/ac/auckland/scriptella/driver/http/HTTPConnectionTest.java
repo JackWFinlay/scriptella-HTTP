@@ -1,5 +1,10 @@
 package nz.ac.auckland.scriptella.driver.http;
 
+/**
+ * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
+ */
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
