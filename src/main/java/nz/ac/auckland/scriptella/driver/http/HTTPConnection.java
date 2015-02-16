@@ -106,7 +106,6 @@ public class HTTPConnection extends AbstractConnection {
                     se.setContentType("application/json; charset=UTF-8");
 
                     httpRequest.setEntity(se);
-
                 }
 
                 httpResponse = httpClient.execute(httpRequest);
