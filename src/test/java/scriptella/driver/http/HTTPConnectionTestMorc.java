@@ -1,4 +1,4 @@
-package nz.ac.auckland.scriptella.driver.http;
+package scriptella.driver.http;
 
 /**
  * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
@@ -8,7 +8,6 @@ package nz.ac.auckland.scriptella.driver.http;
 import nz.ac.auckland.morc.MorcTestBuilder;
 import nz.ac.auckland.morc.TestBean;
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import scriptella.configuration.StringResource;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;

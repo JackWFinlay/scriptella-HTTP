@@ -1,12 +1,10 @@
-package nz.ac.auckland.scriptella.driver.http;
+package scriptella.driver.http;
 
 /**
  * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
  *
  */
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
