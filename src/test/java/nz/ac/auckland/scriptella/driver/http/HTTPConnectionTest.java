@@ -39,7 +39,7 @@ public class HTTPConnectionTest {
     public void testExecuteScript_GET() {
 
         System.out.println("Test1");
-        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET", 500);
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET","String", 500);
 
         resource = new StringResource("abc=123\n" +
                 "def=456\n" +
@@ -53,11 +53,54 @@ public class HTTPConnectionTest {
     public void testExecuteScript_POST() {
 
         System.out.println("Test2");
-        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", 500);
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String", 500);
 
         resource = new StringResource("abc=123\n" +
                 "def=456\n" +
                 "ghi=789");
+
+        httpConnection.executeScript(resource, parametersCallback);
+    }
+
+    @Test
+    public void testExecuteScript_POST_JSON() {
+
+        System.out.println("Test3");
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON", 500);
+
+        resource = new StringResource("{\n" +
+                "  \"item1\": \"one\",\n" +
+                "  \"item2\": \"two\",\n" +
+                "  \"item3\": \"three\"\n" +
+                "}");
+
+        httpConnection.executeScript(resource, parametersCallback);
+    }
+
+    @Test
+    public void testExecuteScript_PUT() {
+
+        System.out.println("Test4");
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
+
+        resource = new StringResource("abc=123\n" +
+                "def=456\n" +
+                "ghi=789");
+
+        httpConnection.executeScript(resource, parametersCallback);
+    }
+
+    @Test
+    public void testExecuteScript_PUT_JSON() {
+
+        System.out.println("Test4");
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "JSON", 500);
+
+        resource = new StringResource("{\n" +
+                "  \"item1\": \"one\",\n" +
+                "  \"item2\": \"two\",\n" +
+                "  \"item3\": \"three\"\n" +
+                "}");
 
         httpConnection.executeScript(resource, parametersCallback);
     }

@@ -30,7 +30,7 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "String", 500);
                 System.out.println("Test2");
                 Resource resource = new StringResource("abc=123\n" +
                         "def=456\n" +
@@ -40,18 +40,13 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
             }
 
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"), header(Exchange.HTTP_QUERY, "abc=123&def=456&ghi=789"))).mockFeedPreprocessor(new Processor() {
-            @Override
-            public void process(Exchange exchange) throws Exception {
-                if (exchange.getIn().getBody() == null) exchange.getIn().setBody("");
-            }
-        }));
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080/abc").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"), header(Exchange.HTTP_URI, "/abc"))));
 
         syncTest("script POST test", new TestBean() {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String",500);
 
                 System.out.println("Test2");
                 Resource resource = new StringResource("abc=123\n" +
@@ -62,12 +57,61 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
             }
 
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))).mockFeedPreprocessor(new Processor() {
-            @Override
-            public void process(Exchange exchange) throws Exception {
-                if (exchange.getIn().getBody() == null) exchange.getIn().setBody("");
-            }
-        }));
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))));
 
+        syncTest("script Put test", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
+
+                System.out.println("Test2");
+                Resource resource = new StringResource("abc=123\n" +
+                        "def=456\n" +
+                        "ghi=789");
+
+                httpConnection.executeScript(resource, parametersCallback);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(text("abc=123&def=456&ghi=789")));
+
+        syncTest("script POST test - JSON", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON",500);
+
+                System.out.println("Test2");
+                Resource resource = new StringResource("{\n" +
+                        "  \"item1\": \"one\"\n" +
+                        "}");
+
+                httpConnection.executeScript(resource, parametersCallback);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\n" +
+                "  \"item1\": \"one\"\n" +
+                "}")));
+
+        syncTest("script Put test - JSON", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
+
+                System.out.println("Test2");
+                Resource resource = new StringResource("{\n" +
+                        "  \"item1\": \"one\"\n" +
+                        "}");
+
+                httpConnection.executeScript(resource, parametersCallback);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\n" +
+                "  \"item1\": \"one\"\n" +
+                "}")));
     }
 }

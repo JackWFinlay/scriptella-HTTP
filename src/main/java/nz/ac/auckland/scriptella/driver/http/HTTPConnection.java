@@ -6,13 +6,14 @@ package nz.ac.auckland.scriptella.driver.http;
  */
 
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -34,7 +35,9 @@ public class HTTPConnection extends AbstractConnection {
 
     private String host;
     private String type;
+    private String format;
     private int timeOut;
+
     CloseableHttpClient httpClient;
 
     Logger logger = LoggerFactory.getLogger("HttpConnection");
@@ -42,15 +45,17 @@ public class HTTPConnection extends AbstractConnection {
     public HTTPConnection() {
     } // Override default constructor
 
-    public HTTPConnection(String host, String type, int timeOut) {
+    public HTTPConnection(String host, String type, String format, int timeOut ) {
         this.host = host;
         this.type = type;
+        this.format = format;
         this.timeOut = timeOut;
     }
 
     public HTTPConnection(ConnectionParameters connectionParameters) {
         host = connectionParameters.getStringProperty("url");
         type = connectionParameters.getStringProperty("type");
+        format = connectionParameters.getStringProperty("format");
         timeOut = connectionParameters.getIntegerProperty("timeout");
     }
 
@@ -72,9 +77,9 @@ public class HTTPConnection extends AbstractConnection {
                 .setSocketTimeout(timeOut).build();
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
-        HttpResponse httpResponse;
+        HttpResponse httpResponse = null;
+        HttpEntityEnclosingRequestBase httpRequest = null;
         HttpGet httpGet = null;
-        HttpPost httpPost = null;
 
         try {
             if (type.toUpperCase().equals("GET")) {
@@ -85,32 +90,43 @@ public class HTTPConnection extends AbstractConnection {
                 httpGet = new HttpGet(uriBuilder.build());
 
                 httpResponse = httpClient.execute(httpGet);
-            } else { // Post
-                httpPost = new HttpPost(host);
 
-                httpPost.setEntity(new UrlEncodedFormEntity(generateParams(resource)));
+            } else {
 
-                httpResponse = httpClient.execute(httpPost);
+                if (type.toUpperCase().equals("PUT")) {
+                    httpRequest = new HttpPut(host);
+                } else {
+                    httpRequest = new HttpPost(host);
+                }
+
+                if (format.toUpperCase().equals("STRING")) {
+                    httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource)));
+                } else {
+                    StringEntity se = new StringEntity(((StringResource) resource).getString(), "UTF-8");
+                    se.setContentType("application/json; charset=UTF-8");
+
+                    httpRequest.setEntity(se);
+
+                }
+
+                httpResponse = httpClient.execute(httpRequest);
+
             }
 
             logger.info("Response Status: {}", httpResponse.getStatusLine().getStatusCode());
 
-        } catch (HttpException e) {
-            logger.error("HTTP Error: ", e);
-        } catch (IOException e) {
+        } catch ( IOException | URISyntaxException e) {
             logger.error("IO Error: ", e);
-        } catch (URISyntaxException e) {
-            logger.error("URI Error: ", e);
         } finally {
             if (httpGet != null) {
                 httpGet.releaseConnection();
-            }
-            if (httpPost != null) {
-                httpPost.releaseConnection();
+            } else {
+                httpRequest.releaseConnection();
             }
         }
 
     }
+
 
     private List<NameValuePair> generateParams(Resource resource) {
         BufferedReader br = new BufferedReader(new StringReader(((StringResource) resource).getString()));
