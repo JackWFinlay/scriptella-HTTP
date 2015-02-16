@@ -58,6 +58,20 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))));
 
+        syncTest("script POST test - JSON", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON",500);
+
+                Resource resource = new StringResource("{\"item1\": \"one\"}");
+
+                httpConnection.executeScript(resource, parametersCallback);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
+
         syncTest("script Put test", new TestBean() {
             @Override
             public void run() throws Exception {
@@ -73,20 +87,6 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
             }
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(text("abc=123&def=456&ghi=789")));
-
-        syncTest("script POST test - JSON", new TestBean() {
-            @Override
-            public void run() throws Exception {
-
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON",500);
-
-                Resource resource = new StringResource("{\"item1\": \"one\"}");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
 
         syncTest("script Put test - JSON", new TestBean() {
             @Override

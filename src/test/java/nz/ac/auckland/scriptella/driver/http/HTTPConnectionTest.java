@@ -93,7 +93,7 @@ public class HTTPConnectionTest {
     @Test
     public void testExecuteScript_PUT_JSON() {
 
-        System.out.println("Test4");
+        System.out.println("Test5");
         httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "JSON", 500);
 
         resource = new StringResource("{\n" +
