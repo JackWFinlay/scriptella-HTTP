@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
  *
  */
-public class HTTPConnectionTestIntegration extends MorcTestBuilder {
+public class HTTPConnectionTest2 extends MorcTestBuilder {
 
     public void configure() {
 
