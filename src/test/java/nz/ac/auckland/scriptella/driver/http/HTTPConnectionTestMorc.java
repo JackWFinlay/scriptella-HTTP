@@ -9,7 +9,6 @@ import scriptella.spi.Resource;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
  */
 public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
@@ -44,7 +43,7 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String",500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String", 500);
 
                 Resource resource = new StringResource("abc=123\n" +
                         "def=456\n" +
@@ -60,7 +59,7 @@ public class HTTPConnectionTestMorc extends MorcTestBuilder {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON",500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON", 500);
 
                 Resource resource = new StringResource("{\"item1\": \"one\"}");
 

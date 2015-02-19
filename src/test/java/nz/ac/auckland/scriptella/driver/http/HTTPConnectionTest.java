@@ -1,16 +1,15 @@
 package nz.ac.auckland.scriptella.driver.http;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import scriptella.configuration.StringResource;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
  */
 public class HTTPConnectionTest {
 
@@ -39,14 +38,14 @@ public class HTTPConnectionTest {
     public void testExecuteScript_GET() {
 
         System.out.println("Test1");
-        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET","String", 500);
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080", "GET", "String", 500);
 
         resource = new StringResource("abc=123\n" +
                 "def=456\n" +
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
-        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200);
     }
 
     @Test
@@ -60,7 +59,7 @@ public class HTTPConnectionTest {
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
-        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200);
     }
 
     @Test
@@ -76,7 +75,7 @@ public class HTTPConnectionTest {
                 "}");
 
         httpConnection.executeScript(resource, parametersCallback);
-        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200);
     }
 
     @Test
@@ -90,7 +89,7 @@ public class HTTPConnectionTest {
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
-        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200);
     }
 
     @Test
@@ -106,6 +105,6 @@ public class HTTPConnectionTest {
                 "}");
 
         httpConnection.executeScript(resource, parametersCallback);
-        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200);
     }
 }

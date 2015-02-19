@@ -1,36 +1,49 @@
 package nz.ac.auckland.scriptella.driver.http;
 
-import nz.ac.auckland.morc.TestBean;
-import scriptella.AbstractTestCase;
-import scriptella.execution.EtlExecutor;
-import scriptella.execution.EtlExecutorException;
-
 import nz.ac.auckland.morc.MorcTestBuilder;
+import nz.ac.auckland.morc.TestBean;
+import scriptella.configuration.ConfigurationEl;
+import scriptella.configuration.ConfigurationFactory;
+import scriptella.execution.EtlExecutor;
 
-import static nz.ac.auckland.morc.MorcTestBuilder.syncTest;
+import java.net.URL;
 
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
  */
-public class IntegrationTest extends AbstractTestCase{
-    public void test() throws EtlExecutorException {
+public class IntegrationTest extends MorcTestBuilder {
 
-        new MorcTestBuilder() {
-            public void configure() {
-                syncTest("Integration test", new TestBean() {
-                    @Override
-                    public void run() throws Exception {
-                        final EtlExecutor se = newEtlExecutor();
-                        se.execute();
-                    }
-                }).addExpectation(syncExpectation("jetty:http://localhost:8080")
-                        .expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))))
-                    .addExpectation(syncExpectation("jetty:http://localhost:8080")
-                            .expectedHeaders(headers(header("abc", "jkl"), header("def", "mno"), header("ghi", "pqr"))))
-                    .addExpectation(syncExpectation("jetty:http://localhost:8080")
-                            .expectedHeaders(headers(header("abc", "stu"), header("def", "vwx"), header("ghi", "yz"))));}
-        }.run();
+    public void configure() {
+        syncTest("Integration test", new TestBean() {
+            @Override
+            public void run() throws Exception {
+                final EtlExecutor se = newEtlExecutor();
+                se.execute();
+            }
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080")
+                .expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))))
+                .addExpectation(syncExpectation("jetty:http://localhost:8080")
+                        .expectedHeaders(headers(header("abc", "jkl"), header("def", "mno"), header("ghi", "pqr"))))
+                .addExpectation(syncExpectation("jetty:http://localhost:8080")
+                        .expectedHeaders(headers(header("abc", "stu"), header("def", "vwx"), header("ghi", "yz"))));
+    }
+
+    protected EtlExecutor newEtlExecutor() {
+        return new EtlExecutor(loadConfiguration(getClass().getSimpleName()+".xml"));
+    }
+
+    protected ConfigurationEl loadConfiguration(final String path) {
+        ConfigurationFactory cf = new ConfigurationFactory();
+        final URL resource = getClass().getResource(path);
+
+        if (resource == null) {
+            throw new IllegalStateException("Resource " + path + " not found");
+
+        }
+
+        cf.setResourceURL(resource);
+
+        return cf.createConfiguration();
     }
 }

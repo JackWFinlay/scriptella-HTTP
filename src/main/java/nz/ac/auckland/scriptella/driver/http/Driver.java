@@ -7,7 +7,6 @@ import scriptella.spi.ScriptellaDriver;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
  */
 public class Driver implements ScriptellaDriver {
 

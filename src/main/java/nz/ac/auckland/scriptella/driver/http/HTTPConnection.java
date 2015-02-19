@@ -4,7 +4,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -27,7 +30,6 @@ import java.util.Properties;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
  */
 public class HTTPConnection extends AbstractConnection {
 
@@ -44,7 +46,7 @@ public class HTTPConnection extends AbstractConnection {
     public HTTPConnection() {
     } // Override default constructor
 
-    public HTTPConnection(String host, String type, String format, int timeOut ) {
+    public HTTPConnection(String host, String type, String format, int timeOut) {
         this.host = host;
         this.type = type;
         this.format = format;
@@ -53,7 +55,7 @@ public class HTTPConnection extends AbstractConnection {
 
     public HTTPConnection(ConnectionParameters connectionParameters) {
 
-        super (Driver.DIALECT, connectionParameters);
+        super(Driver.DIALECT, connectionParameters);
 
         Properties properties = CollectionUtils.asProperties(connectionParameters.getProperties());
         properties.putAll(connectionParameters.getUrlQueryMap());
@@ -61,7 +63,7 @@ public class HTTPConnection extends AbstractConnection {
         host = connectionParameters.getUrl();
         type = properties.getProperty("type", "GET");
         format = properties.getProperty("format", "String");
-        timeOut = Integer.parseInt((String)properties.getOrDefault("timeout", "500"));
+        timeOut = Integer.parseInt((String) properties.getOrDefault("timeout", "500"));
     }
 
     public String getHost() {
@@ -99,8 +101,6 @@ public class HTTPConnection extends AbstractConnection {
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
 
-
-
         try {
             if (type.toUpperCase().equals("GET")) {
 
@@ -133,7 +133,7 @@ public class HTTPConnection extends AbstractConnection {
                         jsonString.append(line);
                     }
 
-                    StringEntity se = new StringEntity( jsonString.toString(), "UTF-8");
+                    StringEntity se = new StringEntity(jsonString.toString(), "UTF-8");
 
                     se.setContentType("application/json; charset=UTF-8");
 
@@ -146,7 +146,7 @@ public class HTTPConnection extends AbstractConnection {
 
             logger.info("Response Status: {}", httpResponse.getStatusLine().getStatusCode());
 
-        } catch ( IOException | URISyntaxException e) {
+        } catch (IOException | URISyntaxException e) {
             logger.error("IO Error: ", e);
         }
     }
@@ -160,7 +160,7 @@ public class HTTPConnection extends AbstractConnection {
         try {
             br = new BufferedReader(resource.open());
         } catch (IOException e) {
-            logger.error("IOException: ",e);
+            logger.error("IOException: ", e);
         }
 
         String line;
@@ -169,7 +169,7 @@ public class HTTPConnection extends AbstractConnection {
         try {
             while ((line = br.readLine()) != null) {
                 String[] components = line.trim().split("=");
-                if ( components.length > 1 ) {
+                if (components.length > 1) {
                     nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
                 }
             }
