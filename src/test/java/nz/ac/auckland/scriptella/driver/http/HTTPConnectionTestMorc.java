@@ -1,9 +1,4 @@
-package scriptella.driver.http;
-
-/**
- * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
- */
+package nz.ac.auckland.scriptella.driver.http;
 
 import nz.ac.auckland.morc.MorcTestBuilder;
 import nz.ac.auckland.morc.TestBean;
@@ -12,6 +7,10 @@ import scriptella.configuration.StringResource;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
 
+/**
+ * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
+ */
 public class HTTPConnectionTestMorc extends MorcTestBuilder {
 
     public void configure() {

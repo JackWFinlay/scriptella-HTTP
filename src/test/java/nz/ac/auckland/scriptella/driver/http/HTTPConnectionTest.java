@@ -1,17 +1,17 @@
-package scriptella.driver.http;
-
-/**
- * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
- */
+package nz.ac.auckland.scriptella.driver.http;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 import scriptella.configuration.StringResource;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
 
+/**
+ * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
+ */
 public class HTTPConnectionTest {
 
     Resource resource;
@@ -46,7 +46,7 @@ public class HTTPConnectionTest {
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
-
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
     }
 
     @Test
@@ -60,6 +60,7 @@ public class HTTPConnectionTest {
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
     }
 
     @Test
@@ -75,6 +76,7 @@ public class HTTPConnectionTest {
                 "}");
 
         httpConnection.executeScript(resource, parametersCallback);
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
     }
 
     @Test
@@ -88,6 +90,7 @@ public class HTTPConnectionTest {
                 "ghi=789");
 
         httpConnection.executeScript(resource, parametersCallback);
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
     }
 
     @Test
@@ -103,5 +106,6 @@ public class HTTPConnectionTest {
                 "}");
 
         httpConnection.executeScript(resource, parametersCallback);
+        Assert.assertTrue(httpConnection.httpResponse.getStatusLine().getStatusCode() == 200 );
     }
 }

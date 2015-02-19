@@ -1,9 +1,4 @@
-package scriptella.driver.http;
-
-/**
- * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
- */
+package nz.ac.auckland.scriptella.driver.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -17,24 +12,30 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scriptella.configuration.StringResource;
 import scriptella.spi.*;
+import scriptella.util.CollectionUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.Reader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 
+/**
+ * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
+ */
 public class HTTPConnection extends AbstractConnection {
 
     private String host;
     private String type;
     private String format;
     private int timeOut;
+    public HttpResponse httpResponse;
 
     CloseableHttpClient httpClient;
 
@@ -51,10 +52,32 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     public HTTPConnection(ConnectionParameters connectionParameters) {
-        host = connectionParameters.getStringProperty("url");
-        type = connectionParameters.getStringProperty("type");
-        format = connectionParameters.getStringProperty("format");
-        timeOut = connectionParameters.getIntegerProperty("timeout");
+
+        super (Driver.DIALECT, connectionParameters);
+
+        Properties properties = CollectionUtils.asProperties(connectionParameters.getProperties());
+        properties.putAll(connectionParameters.getUrlQueryMap());
+
+        host = connectionParameters.getUrl();
+        type = properties.getProperty("type", "GET");
+        format = properties.getProperty("format", "String");
+        timeOut = Integer.parseInt((String)properties.getOrDefault("timeout", "500"));
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public int getTimeOut() {
+        return timeOut;
     }
 
 
@@ -75,9 +98,8 @@ public class HTTPConnection extends AbstractConnection {
                 .setSocketTimeout(timeOut).build();
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
-        HttpResponse httpResponse = null;
-        HttpEntityEnclosingRequestBase httpRequest = null;
-        HttpGet httpGet = null;
+
+
 
         try {
             if (type.toUpperCase().equals("GET")) {
@@ -85,11 +107,12 @@ public class HTTPConnection extends AbstractConnection {
                 URIBuilder uriBuilder = new URIBuilder(host);
                 uriBuilder.addParameters(generateParams(resource));
 
-                httpGet = new HttpGet(uriBuilder.build());
+                HttpGet httpGet = new HttpGet(uriBuilder.build());
 
                 httpResponse = httpClient.execute(httpGet);
 
             } else {
+                HttpEntityEnclosingRequestBase httpRequest;
 
                 if (type.toUpperCase().equals("PUT")) {
                     httpRequest = new HttpPut(host);
@@ -100,7 +123,18 @@ public class HTTPConnection extends AbstractConnection {
                 if (format.toUpperCase().equals("STRING")) {
                     httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource)));
                 } else {
-                    StringEntity se = new StringEntity(((StringResource) resource).getString(), "UTF-8");
+
+                    BufferedReader br = new BufferedReader(resource.open());
+
+                    StringBuilder jsonString = new StringBuilder();
+                    String line;
+
+                    while ((line = br.readLine()) != null) {
+                        jsonString.append(line);
+                    }
+
+                    StringEntity se = new StringEntity( jsonString.toString(), "UTF-8");
+
                     se.setContentType("application/json; charset=UTF-8");
 
                     httpRequest.setEntity(se);
@@ -114,27 +148,30 @@ public class HTTPConnection extends AbstractConnection {
 
         } catch ( IOException | URISyntaxException e) {
             logger.error("IO Error: ", e);
-        } finally {
-            if (httpGet != null) {
-                httpGet.releaseConnection();
-            } else {
-                httpRequest.releaseConnection();
-            }
         }
-
     }
 
 
     private List<NameValuePair> generateParams(Resource resource) {
-        BufferedReader br = new BufferedReader(new StringReader(((StringResource) resource).getString()));
-        String line;
+        //StringResource stringResource = new StringResource(resource.toString());
+        BufferedReader br = null;
+        Reader r;
 
-        List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>(1);
+        try {
+            br = new BufferedReader(resource.open());
+        } catch (IOException e) {
+            logger.error("IOException: ",e);
+        }
+
+        String line;
+        List<NameValuePair> nameValuePairList = new ArrayList<>(1);
 
         try {
             while ((line = br.readLine()) != null) {
-                String[] components = line.split("=");
-                nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
+                String[] components = line.trim().split("=");
+                if ( components.length > 1 ) {
+                    nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
+                }
             }
         } catch (IOException e) {
             logger.error("IO exception: ", e);

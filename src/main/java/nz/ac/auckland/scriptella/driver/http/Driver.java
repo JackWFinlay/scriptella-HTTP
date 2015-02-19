@@ -1,21 +1,26 @@
-package scriptella.driver.http;
+package nz.ac.auckland.scriptella.driver.http;
 
-/**
- * @Author Jack W Finlay - jfin404@aucklanduni.ac.nz
- *
- */
-
-import scriptella.spi.AbstractScriptellaDriver;
 import scriptella.spi.Connection;
 import scriptella.spi.ConnectionParameters;
 import scriptella.spi.DialectIdentifier;
+import scriptella.spi.ScriptellaDriver;
 
-public class Driver extends AbstractScriptellaDriver {
+/**
+ * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
+ *
+ */
+public class Driver implements ScriptellaDriver {
 
     static final DialectIdentifier DIALECT = new DialectIdentifier("HTTP", "1.1");
 
     public Connection connect(ConnectionParameters connectionParameters) {
         return new HTTPConnection(connectionParameters);
     }
+
+    @Override
+    public String toString() {
+        return "Http driver";
+    }
+
 
 }
