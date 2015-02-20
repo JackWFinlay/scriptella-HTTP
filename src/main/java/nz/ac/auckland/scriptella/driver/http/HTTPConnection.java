@@ -13,6 +13,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scriptella.driver.script.ParametersCallbackMap;
@@ -22,11 +24,8 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 
 /**
@@ -107,7 +106,7 @@ public class HTTPConnection extends AbstractConnection {
             if (type.toUpperCase().equals("GET")) {
 
                 URIBuilder uriBuilder = new URIBuilder(host);
-                uriBuilder.addParameters(generateParams(resource,parameters));
+                uriBuilder.addParameters(generateParams(resource, parameters));
 
                 HttpGet httpGet = new HttpGet(uriBuilder.build());
 
@@ -124,18 +123,18 @@ public class HTTPConnection extends AbstractConnection {
 
                 if (format.toUpperCase().equals("STRING")) {
                     httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
-                } else {
+                } else { // JSON
 
                     BufferedReader br = new BufferedReader(resource.open());
 
-                    StringBuilder jsonString = new StringBuilder();
+                    List<String> jsonString = new ArrayList<>();
                     String line;
 
                     while ((line = br.readLine()) != null) {
-                        jsonString.append(line);
+                        jsonString.add(line);
                     }
 
-                    StringEntity se = new StringEntity(jsonString.toString(), "UTF-8");
+                    StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
 
                     se.setContentType("application/json; charset=UTF-8");
 
@@ -155,9 +154,7 @@ public class HTTPConnection extends AbstractConnection {
 
 
     private List<NameValuePair> generateParams(Resource resource, ParametersCallbackMap parameters) {
-        //StringResource stringResource = new StringResource(resource.toString());
         BufferedReader br = null;
-        Reader r;
 
         try {
             br = new BufferedReader(resource.open());
@@ -173,7 +170,7 @@ public class HTTPConnection extends AbstractConnection {
                 String[] components = line.trim().split("=");
                 if (components.length > 1) {
                     // Remove "$" and double-quotes used to make driver work as user would expect based on csv driver and others.
-                    String key = components[1].replace("$","").replace("\"","");
+                    String key = components[1].replace("$", "").replace("\"", "");
                     nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
                 }
             }
@@ -182,6 +179,31 @@ public class HTTPConnection extends AbstractConnection {
         }
 
         return nameValuePairList;
+    }
+
+
+    public String parseJSON(List<String> jsonString, ParametersCallbackMap parameters) {
+
+        StringBuilder parsedJSON = new StringBuilder("");
+
+        for (String line : jsonString) {
+            // Check if line has a comma as it is stripped out if value is replaced.
+            String comma = line.contains(",") ? "," : "";
+
+            String[] split = line.trim().split(":");
+            if (split.length > 1) {
+                // Check if value is meant to be a variable and not literal value with "$" in it.
+                if (split[1].contains("$") && !split[1].contains("\"")) {
+                    String key = split[1].trim().replace("$", "").replace(",","");
+                    split[1] = ("\"" +((String) parameters.getParameter(key)) + "\"" + comma);
+                    parsedJSON.append(split[0] + ":" + split[1] +"");
+                }
+            } else {
+                parsedJSON.append(line);
+            }
+        }
+
+        return parsedJSON.toString();
     }
 
 

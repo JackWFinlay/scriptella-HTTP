@@ -1,16 +1,8 @@
 package nz.ac.auckland.scriptella.driver.http;
 
 import nz.ac.auckland.morc.MorcTestBuilder;
-import nz.ac.auckland.morc.TestBean;
-import org.apache.camel.Exchange;
-import scriptella.configuration.StringResource;
-import scriptella.spi.ConnectionParameters;
-//import scriptella.spi.MockConnectionParameters;
-import scriptella.spi.ParametersCallback;
-import scriptella.spi.Resource;
 
-import java.util.HashMap;
-import java.util.Map;
+//import scriptella.spi.MockConnectionParameters;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz

@@ -12,7 +12,7 @@ import java.net.URL;
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
  */
-public class IntegrationTest extends MorcTestBuilder {
+public class IntegrationJSONTest extends MorcTestBuilder {
 
     public void configure() {
 
@@ -23,16 +23,29 @@ public class IntegrationTest extends MorcTestBuilder {
                 se.execute();
             }
         }).addExpectation(syncExpectation("jetty:http://localhost:8080")
-                .expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))))
+                .expectedBody(json("{" +
+                        "\"item1\": \"123\"," +
+                        "\"item2\": \"456\"," +
+                        "\"item3\": \"789\"" +
+                        "}")))
                 .addExpectation(syncExpectation("jetty:http://localhost:8080")
-                        .expectedHeaders(headers(header("abc", "jkl"), header("def", "mno"), header("ghi", "pqr"))))
+                        .expectedBody(json("{" +
+                                "\"item1\": \"jkl\"," +
+                                "\"item2\": \"mno\"," +
+                                "\"item3\": \"pqr\"" +
+                                "}")))
                 .addExpectation(syncExpectation("jetty:http://localhost:8080")
-                        .expectedHeaders(headers(header("abc", "stu"), header("def", "vwx"), header("ghi", "yz"))));
+                        .expectedBody(json("{" +
+                                "\"item1\": \"stu\"," +
+                                "\"item2\": \"vwx\"," +
+                                "\"item3\": \"yz\"" +
+                                "}")));
+
     }
 
     // Adapted from AbstractTestCase due to multiple-inheritance issues
     protected EtlExecutor newEtlExecutor() {
-        return new EtlExecutor(loadConfiguration("IntegrationTest.xml"));
+        return new EtlExecutor(loadConfiguration("IntegrationJSONTest.xml"));
     }
 
     // Adapted from AbstractTestCase due to multiple-inheritance issues
