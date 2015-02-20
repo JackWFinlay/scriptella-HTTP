@@ -6,6 +6,8 @@ import scriptella.configuration.ConfigurationEl;
 import scriptella.configuration.ConfigurationFactory;
 import scriptella.execution.EtlExecutor;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 
@@ -15,6 +17,7 @@ import java.net.URL;
 public class IntegrationTest extends MorcTestBuilder {
 
     public void configure() {
+
         syncTest("Integration test", new TestBean() {
             @Override
             public void run() throws Exception {
@@ -30,12 +33,18 @@ public class IntegrationTest extends MorcTestBuilder {
     }
 
     protected EtlExecutor newEtlExecutor() {
-        return new EtlExecutor(loadConfiguration(getClass().getSimpleName()+".xml"));
+        return new EtlExecutor(loadConfiguration("IntegrationTest.xml"));
     }
 
     protected ConfigurationEl loadConfiguration(final String path) {
         ConfigurationFactory cf = new ConfigurationFactory();
-        final URL resource = getClass().getResource(path);
+        //final URL resource = getClass().getResource(path);
+        URL resource = null;
+        try {
+            resource = new File(path).toURI().toURL();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         if (resource == null) {
             throw new IllegalStateException("Resource " + path + " not found");
@@ -45,5 +54,8 @@ public class IntegrationTest extends MorcTestBuilder {
         cf.setResourceURL(resource);
 
         return cf.createConfiguration();
+
+
     }
+
 }

@@ -5,7 +5,7 @@ import nz.ac.auckland.morc.TestBean;
 import org.apache.camel.Exchange;
 import scriptella.configuration.StringResource;
 import scriptella.spi.ConnectionParameters;
-import scriptella.spi.MockConnectionParameters;
+//import scriptella.spi.MockConnectionParameters;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
 
@@ -18,7 +18,7 @@ import java.util.Map;
 public class HTTPConnectionTest2 extends MorcTestBuilder {
 
     public void configure() {
-
+/*
         final ParametersCallback parametersCallback;
 
         parametersCallback = new ParametersCallback() {
@@ -162,5 +162,6 @@ public class HTTPConnectionTest2 extends MorcTestBuilder {
             }
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
+        */
     }
 }

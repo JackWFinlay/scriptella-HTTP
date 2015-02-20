@@ -10,7 +10,7 @@ import scriptella.spi.Resource;
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
  */
-public class HTTPConnectionTestMorc extends MorcTestBuilder {
+public class HTTPConnectionMorcTest extends MorcTestBuilder {
 
     public void configure() {
 

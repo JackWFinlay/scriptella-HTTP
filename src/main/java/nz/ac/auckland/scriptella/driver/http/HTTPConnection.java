@@ -15,6 +15,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scriptella.driver.script.ParametersCallbackMap;
 import scriptella.spi.*;
 import scriptella.util.CollectionUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -85,7 +86,7 @@ public class HTTPConnection extends AbstractConnection {
 
     @Override
     public void executeScript(Resource resource, ParametersCallback parametersCallback) throws ProviderException {
-        run(resource);
+        run(resource, parametersCallback);
     }
 
     @Override
@@ -93,19 +94,20 @@ public class HTTPConnection extends AbstractConnection {
         throw new NotImplementedException();
     }
 
-    private void run(Resource resource) {
+    private void run(Resource resource, ParametersCallback parametersCallback) {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(timeOut)
                 .setConnectionRequestTimeout(timeOut)
                 .setSocketTimeout(timeOut).build();
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
+        ParametersCallbackMap parameters = new ParametersCallbackMap(parametersCallback);
 
         try {
             if (type.toUpperCase().equals("GET")) {
 
                 URIBuilder uriBuilder = new URIBuilder(host);
-                uriBuilder.addParameters(generateParams(resource));
+                uriBuilder.addParameters(generateParams(resource,parameters));
 
                 HttpGet httpGet = new HttpGet(uriBuilder.build());
 
@@ -121,7 +123,7 @@ public class HTTPConnection extends AbstractConnection {
                 }
 
                 if (format.toUpperCase().equals("STRING")) {
-                    httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource)));
+                    httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
                 } else {
 
                     BufferedReader br = new BufferedReader(resource.open());
@@ -152,7 +154,7 @@ public class HTTPConnection extends AbstractConnection {
     }
 
 
-    private List<NameValuePair> generateParams(Resource resource) {
+    private List<NameValuePair> generateParams(Resource resource, ParametersCallbackMap parameters) {
         //StringResource stringResource = new StringResource(resource.toString());
         BufferedReader br = null;
         Reader r;
@@ -170,7 +172,7 @@ public class HTTPConnection extends AbstractConnection {
             while ((line = br.readLine()) != null) {
                 String[] components = line.trim().split("=");
                 if (components.length > 1) {
-                    nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
+                    nameValuePairList.add(new BasicNameValuePair(components[0], (String)parameters.getParameter(components[1])));
                 }
             }
         } catch (IOException e) {
