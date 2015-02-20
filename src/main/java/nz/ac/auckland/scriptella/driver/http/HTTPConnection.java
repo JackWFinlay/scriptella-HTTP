@@ -172,7 +172,9 @@ public class HTTPConnection extends AbstractConnection {
             while ((line = br.readLine()) != null) {
                 String[] components = line.trim().split("=");
                 if (components.length > 1) {
-                    nameValuePairList.add(new BasicNameValuePair(components[0], (String)parameters.getParameter(components[1])));
+                    // Remove "$" and double-quotes used to make driver work as user would expect based on csv driver and others.
+                    String key = components[1].replace("$","").replace("\"","");
+                    nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
                 }
             }
         } catch (IOException e) {

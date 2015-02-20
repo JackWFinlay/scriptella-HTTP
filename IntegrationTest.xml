@@ -1,6 +1,9 @@
 <!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
 <etl>
-    <connection id="http" driver="nz.ac.auckland.scriptella.driver.http.Driver" url="http://127.0.0.1:8080"/>
+    <connection id="http" driver="nz.ac.auckland.scriptella.driver.http.Driver" url="http://127.0.0.1:8080">
+        type=post
+        format=string
+    </connection>
     <connection id="csv" driver="csv" url="IntegrationTest.csv"/>
 
     <query connection-id="csv">
