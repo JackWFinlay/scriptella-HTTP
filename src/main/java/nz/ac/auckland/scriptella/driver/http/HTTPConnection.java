@@ -66,23 +66,6 @@ public class HTTPConnection extends AbstractConnection {
         timeOut = Integer.parseInt((String) properties.getOrDefault("timeout", "500"));
     }
 
-    public String getHost() {
-        return host;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public int getTimeOut() {
-        return timeOut;
-    }
-
-
     @Override
     public void executeScript(Resource resource, ParametersCallback parametersCallback) throws ProviderException {
         run(resource, parametersCallback);
@@ -125,16 +108,7 @@ public class HTTPConnection extends AbstractConnection {
                     httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
                 } else { // JSON
 
-                    BufferedReader br = new BufferedReader(resource.open());
-
-                    List<String> jsonString = new ArrayList<>();
-                    String line;
-
-                    while ((line = br.readLine()) != null) {
-                        jsonString.add(line);
-                    }
-
-                    StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
+                    StringEntity se = new StringEntity(parseJSON(resource, parameters), "UTF-8");
 
                     se.setContentType("application/json; charset=UTF-8");
 
@@ -170,8 +144,14 @@ public class HTTPConnection extends AbstractConnection {
                 String[] components = line.trim().split("=");
                 if (components.length > 1) {
                     // Remove "$" and double-quotes used to make driver work as user would expect based on csv driver and others.
-                    String key = components[1].replace("$", "").replace("\"", "");
-                    nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
+
+                    String key = components[1].replace("$", "").replace("?","").replace("\"", "");
+                    if (parameters.containsKey(key)) {
+                        nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
+                    } else {
+
+                        nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -182,24 +162,44 @@ public class HTTPConnection extends AbstractConnection {
     }
 
 
-    public String parseJSON(List<String> jsonString, ParametersCallbackMap parameters) {
+    public String parseJSON(Resource resource, ParametersCallbackMap parameters) {
+
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(resource.open());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        List<String> jsonString = new ArrayList<>();
+        String line;
+
+        try {
+            while ((line = br.readLine()) != null) {
+                jsonString.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         StringBuilder parsedJSON = new StringBuilder("");
 
-        for (String line : jsonString) {
+        for (String jsonLine : jsonString) {
             // Check if line has a comma as it is stripped out if value is replaced.
-            String comma = line.contains(",") ? "," : "";
+            String comma = jsonLine.contains(",") ? "," : "";
 
-            String[] split = line.trim().split(":");
+            String[] split = jsonLine.trim().split(":");
             if (split.length > 1) {
                 // Check if value is meant to be a variable and not literal value with "$" in it.
                 if (split[1].contains("$") && !split[1].contains("\"")) {
                     String key = split[1].trim().replace("$", "").replace(",","");
                     split[1] = ("\"" +((String) parameters.getParameter(key)) + "\"" + comma);
-                    parsedJSON.append(split[0] + ":" + split[1] +"");
                 }
+
+                parsedJSON.append(split[0] + ":" + split[1]);
+
             } else {
-                parsedJSON.append(line);
+                parsedJSON.append(jsonLine);
             }
         }
 
