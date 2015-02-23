@@ -36,9 +36,11 @@ public class HTTPConnection extends AbstractConnection {
     private String type;
     private String format;
     private int timeOut;
-
-    public HttpResponse httpResponse;
-    public final int DEFAULT_TIMEOUT = 0;
+    private HttpGet httpGet;
+    private HttpResponse httpResponse;
+    private HttpEntityEnclosingRequestBase httpRequestBase;
+    
+    private final int DEFAULT_TIMEOUT = 0;
 
     CloseableHttpClient httpClient;
 
@@ -136,25 +138,24 @@ public class HTTPConnection extends AbstractConnection {
                 uriBuilder.addParameters(generateParams(resource, parameters));
                 logger.debug("Added parameters to uri.");
 
-                HttpGet httpGet = new HttpGet(uriBuilder.build());
+                httpGet = new HttpGet(uriBuilder.build());
 
                 httpResponse = httpClient.execute(httpGet);
                 logger.debug("HTTP request executed.");
 
             } else {
-                HttpEntityEnclosingRequestBase httpRequest;
 
                 if (type.toUpperCase().equals("PUT")) {
-                    httpRequest = new HttpPut(host);
+                    httpRequestBase = new HttpPut(host);
                     logger.debug("Http method is PUT.");
                 } else {
-                    httpRequest = new HttpPost(host);
+                    httpRequestBase = new HttpPost(host);
                     logger.debug("Http method is POST.");
                 }
 
                 if (format.toUpperCase().equals("STRING")) {
 
-                    httpRequest.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
+                    httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
                     logger.debug("URLEncodedFormEntity created and set.");
                 } else { // JSON
 
@@ -163,11 +164,11 @@ public class HTTPConnection extends AbstractConnection {
 
                     se.setContentType("application/json; charset=UTF-8");
 
-                    httpRequest.setEntity(se);
+                    httpRequestBase.setEntity(se);
                     logger.debug("JSON format entity set for http request.");
                 }
 
-                httpResponse = httpClient.execute(httpRequest);
+                httpResponse = httpClient.execute(httpRequestBase);
                 logger.debug("Http request executed.");
             }
 
@@ -267,10 +268,17 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     /**
-     * Required override for inheriting from Abstract connection. Not implemented.
+     * Releases HTTP connections.
      * @throws ProviderException
      */
     @Override
     public void close() throws ProviderException {
+        
+        if (httpGet != null) {
+            httpGet.releaseConnection();            
+        } else if ( httpRequestBase != null ) {
+            httpRequestBase.releaseConnection();
+            
+        }
     }
 }

@@ -35,7 +35,7 @@ Values for type: GET(default), POST, PUT.
 
 Values for format: String(default), JSON.
 
-Timeout is in ms. default value is 500.
+Timeout is in ms. default value is 0(infinite).
 
 The driver can only be used in a script tag, queries are not implemented. Variables are generally specified using the dollar sign ($),
 but can be used without it. The variables here represent the names of the headers in the CSV file.
