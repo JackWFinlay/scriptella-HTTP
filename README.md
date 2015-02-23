@@ -1,4 +1,4 @@
-# scriptella-HTTP
+# scriptella-http
 An HTTP connection driver for Scriptella. 
 
 This driver was reverse-engineered from the source code of other Scriptella drivers, notably the CSV driver. 
@@ -31,11 +31,11 @@ Example usage:
 </etl>
 ```
 
-Values for type: GET(default), POST, PUT
+Values for type: GET(default), POST, PUT.
 
-Values for format: String(default), JSON
+Values for format: String(default), JSON.
 
-timeout is in ms. default vaule is 500
+Timeout is in ms. default value is 500.
 
 The driver can only be used in a script tag, queries are not implemented. Variables are generally specified using the dollar sign ($),
 but can be used without it. The variables here represent the names of the headers in the CSV file.

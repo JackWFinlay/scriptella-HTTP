@@ -10,9 +10,9 @@
         <!-- Empty query means select all columns -->
         <script connection-id="http">
             {
-             "item1": $One,
-             "item2": $Two,
-             "item3": $Three
+            "item1": $One,
+            "item2": $Two,
+            "item3": $Three
             }
 
         </script>
