@@ -50,6 +50,7 @@
         <scriptella-core-version>1.1</scriptella-core-version>
         <scriptella-drivers-version>1.1</scriptella-drivers-version>
         <slf4j-api-version>1.7.10</slf4j-api-version>
+        <jacoco-version>0.7.3.201502191951</jacoco-version>
     </properties>
 
     <dependencies>
@@ -131,6 +132,27 @@
                         <!-- bind to the packaging phase -->
                         <goals>
                             <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>

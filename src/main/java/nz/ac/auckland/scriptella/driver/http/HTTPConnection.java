@@ -104,11 +104,11 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     /**
-     * NOT IMPLEMENTED.
+     * Executes the request as a query, returning the response. Not yet implemented.
      *
-     * @param resource
-     * @param parametersCallback
-     * @param queryCallback
+     * @param resource           The body of the query
+     * @param parametersCallback the map of variables.
+     * @param queryCallback      The response.
      * @throws ProviderException
      */
     @Override
@@ -266,9 +266,11 @@ public class HTTPConnection extends AbstractConnection {
         return parsedJSON.toString();
     }
 
-
+    /**
+     * Required override for inheriting from Abstract connection. Not implemented.
+     * @throws ProviderException
+     */
     @Override
     public void close() throws ProviderException {
-
     }
 }
