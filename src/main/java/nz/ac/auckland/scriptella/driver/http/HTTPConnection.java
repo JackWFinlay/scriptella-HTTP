@@ -212,6 +212,7 @@ public class HTTPConnection extends AbstractConnection {
                 }
             }
         } catch (IOException e) {
+            logger.error("Error occurred while generating request parameters: ", e);
             throw new RuntimeException(e);
         }
 
@@ -273,12 +274,15 @@ public class HTTPConnection extends AbstractConnection {
      */
     @Override
     public void close() throws ProviderException {
-        
-        if (httpGet != null) {
-            httpGet.releaseConnection();            
-        } else if ( httpRequestBase != null ) {
-            httpRequestBase.releaseConnection();
-            
+        try {
+            if (httpGet != null) {
+                httpGet.releaseConnection();
+            } else if (httpRequestBase != null) {
+                httpRequestBase.releaseConnection();
+            }
+        } catch (Exception e) {
+            logger.error("Error occurred while trying to release http connection: ", e);
+            throw new RuntimeException(e);
         }
     }
 }
