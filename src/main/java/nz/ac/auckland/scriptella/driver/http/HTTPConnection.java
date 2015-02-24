@@ -39,7 +39,7 @@ public class HTTPConnection extends AbstractConnection {
     private HttpGet httpGet;
     private HttpResponse httpResponse;
     private HttpEntityEnclosingRequestBase httpRequestBase;
-    
+
     private final int DEFAULT_TIMEOUT = 0;
 
     CloseableHttpClient httpClient;
