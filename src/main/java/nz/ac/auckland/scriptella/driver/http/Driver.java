@@ -10,7 +10,7 @@ import scriptella.spi.ScriptellaDriver;
  */
 public class Driver implements ScriptellaDriver {
 
-    static final DialectIdentifier DIALECT = new DialectIdentifier("HTTP", "1.1");
+    public static final DialectIdentifier DIALECT = new DialectIdentifier("HTTP", "1.1");
 
     public Connection connect(ConnectionParameters connectionParameters) {
         return new HTTPConnection(connectionParameters);

@@ -26,16 +26,9 @@
         </developer>
     </developers>
 
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
-        </license>
-    </licenses>
-
     <scm>
-        <url>https://github.com/uoa-group-applications/scriptella-http</url>
-        <connection>scm:git:git://github.com/uoa-group-applications/scriptella-http.git</connection>
+        <url>git@github.com:uoa-group-applications/scriptella-http.git</url>
+        <connection>scm:git:git://github.com:uoa-group-applications/scriptella-http.git</connection>
         <developerConnection>scm:git:git@github.com:uoa-group-applications/scriptella-http.git</developerConnection>
         <tag>HEAD</tag>
 

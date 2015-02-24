@@ -41,6 +41,10 @@ public class HTTPConnection extends AbstractConnection {
     private HttpEntityEnclosingRequestBase httpRequestBase;
 
     private final int DEFAULT_TIMEOUT = 0;
+    private final String DEFAULT_FORMAT = "String";
+    private final String GET = "GET";
+    private final String POST = "POST";
+    private final String PUT = "PUT";
 
     CloseableHttpClient httpClient;
 
@@ -80,10 +84,10 @@ public class HTTPConnection extends AbstractConnection {
         host = connectionParameters.getUrl();
         logger.debug("Host: {}", host);
 
-        type = properties.getProperty("type", "GET");
+        type = properties.getProperty("type", GET);
         logger.debug("Type: {}", type);
 
-        format = properties.getProperty("format", "String");
+        format = properties.getProperty("format", DEFAULT_FORMAT);
         logger.debug("Format: {}", format);
 
         timeOut = Integer.parseInt(properties.getOrDefault("timeout", DEFAULT_TIMEOUT).toString());
@@ -115,7 +119,7 @@ public class HTTPConnection extends AbstractConnection {
      */
     @Override
     public void executeQuery(Resource resource, ParametersCallback parametersCallback, QueryCallback queryCallback) throws ProviderException {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Queries are not implemented in this version.");
     }
 
     private void run(Resource resource, ParametersCallback parametersCallback) {
@@ -131,7 +135,7 @@ public class HTTPConnection extends AbstractConnection {
         ParametersCallbackMap parameters = new ParametersCallbackMap(parametersCallback);
 
         try {
-            if (type.toUpperCase().equals("GET")) {
+            if (type.toUpperCase().equals(GET)) {
                 logger.debug("Http method is GET.");
 
                 URIBuilder uriBuilder = new URIBuilder(host);
@@ -145,12 +149,14 @@ public class HTTPConnection extends AbstractConnection {
 
             } else {
 
-                if (type.toUpperCase().equals("PUT")) {
+                if (type.toUpperCase().equals(PUT)) {
                     httpRequestBase = new HttpPut(host);
                     logger.debug("Http method is PUT.");
-                } else {
+                } else if (type.toUpperCase().equals(POST)) {
                     httpRequestBase = new HttpPost(host);
                     logger.debug("Http method is POST.");
+                } else {
+                    throw new RuntimeException("Invalid http method type");
                 }
 
                 if (format.toUpperCase().equals("STRING")) {
@@ -159,7 +165,9 @@ public class HTTPConnection extends AbstractConnection {
                     logger.debug("URLEncodedFormEntity created and set.");
                 } else { // JSON
 
-                    StringEntity se = new StringEntity(parseJSON(resource, parameters), "UTF-8");
+                    List<String> jsonString = getJsonStrings(resource);
+
+                    StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
                     logger.debug("JSON parsed.");
 
                     se.setContentType("application/json; charset=UTF-8");
@@ -180,7 +188,7 @@ public class HTTPConnection extends AbstractConnection {
     }
 
 
-    private List<NameValuePair> generateParams(Resource resource, ParametersCallbackMap parameters) {
+    public List<NameValuePair> generateParams(Resource resource, ParametersCallbackMap parameters) {
         BufferedReader br = null;
 
         try {
@@ -191,7 +199,7 @@ public class HTTPConnection extends AbstractConnection {
         }
 
         String line;
-        List<NameValuePair> nameValuePairList = new ArrayList<>(1);
+        List<NameValuePair> nameValuePairList = new ArrayList<>();
 
         try {
             while ((line = br.readLine()) != null) {
@@ -219,9 +227,7 @@ public class HTTPConnection extends AbstractConnection {
         return nameValuePairList;
     }
 
-
-    private String parseJSON(Resource resource, ParametersCallbackMap parameters) {
-
+    public List<String> getJsonStrings(Resource resource) {
         BufferedReader br = null;
         try {
             br = new BufferedReader(resource.open());
@@ -236,11 +242,16 @@ public class HTTPConnection extends AbstractConnection {
 
         try {
             while ((line = br.readLine()) != null) {
-                jsonString.add(line);
+
+                jsonString.add(line.trim());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return jsonString;
+    }
+
+    public String parseJSON(List<String> jsonString, ParametersCallbackMap parameters) {
 
         StringBuilder parsedJSON = new StringBuilder("");
 
@@ -253,12 +264,12 @@ public class HTTPConnection extends AbstractConnection {
                 // Check if value is meant to be a variable and not literal value with "$" in it.
                 if (split[1].contains("$") && !split[1].contains("\"")) {
                     String key = split[1].trim().replace("$", "").replace(",", "");
-                    split[1] = ("\"" + ((String) parameters.getParameter(key)) + "\"" + comma);
+                    split[1] = String.format("%s%s%s%s", "\"", ((String) parameters.getParameter(key)), "\"", comma);
 
                     logger.debug("JSON string contains variable, replaced with value.");
                 }
 
-                parsedJSON.append(split[0] + ":" + split[1]);
+                parsedJSON.append(String.format("%s%s%s", split[0], ":", split[1]));
 
             } else {
                 parsedJSON.append(jsonLine);
@@ -270,6 +281,7 @@ public class HTTPConnection extends AbstractConnection {
 
     /**
      * Releases HTTP connections.
+     *
      * @throws ProviderException
      */
     @Override
@@ -282,7 +294,7 @@ public class HTTPConnection extends AbstractConnection {
             }
         } catch (Exception e) {
             logger.error("Error occurred while trying to release http connection: ", e);
-            throw new RuntimeException(e);
+            throw new RuntimeException();
         }
     }
 }

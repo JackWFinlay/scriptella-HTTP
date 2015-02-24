@@ -1,20 +1,31 @@
 package nz.ac.auckland.scriptella.driver.http;
 
-import nz.ac.auckland.morc.MorcTestBuilder;
-import nz.ac.auckland.morc.TestBean;
-import org.apache.camel.Exchange;
+import org.apache.http.NameValuePair;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import scriptella.configuration.StringResource;
+import scriptella.driver.script.ParametersCallbackMap;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jack W Finlay - jfin404@aucklanduni.ac.nz
  */
-public class HTTPConnectionTest extends MorcTestBuilder {
+public class HTTPConnectionTest {
 
-    public void configure() {
+    private HTTPConnection httpConnection;
+    private ParametersCallback parametersCallback;
+    ParametersCallbackMap parametersCallbackMap;
 
-        final ParametersCallback parametersCallback;
+    @Before
+    public void before() {
+        httpConnection = new HTTPConnection();
 
         parametersCallback = new ParametersCallback() {
             @Override
@@ -23,80 +34,74 @@ public class HTTPConnectionTest extends MorcTestBuilder {
             }
         };
 
-        syncTest("script GET test", new TestBean() {
-            @Override
-            public void run() throws Exception {
+        parametersCallbackMap = new ParametersCallbackMap(parametersCallback);
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "String", 500);
-
-                Resource resource = new StringResource("abc=123\n" +
-                        "def=456\n" +
-                        "ghi=789");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080/abc").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"), header(Exchange.HTTP_URI, "/abc"))));
-
-        syncTest("script POST test", new TestBean() {
-            @Override
-            public void run() throws Exception {
-
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String", 500);
-
-                Resource resource = new StringResource("abc=123\n" +
-                        "def=456\n" +
-                        "ghi=789");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))));
-
-        syncTest("script POST test - JSON", new TestBean() {
-            @Override
-            public void run() throws Exception {
-
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "JSON", 500);
-
-                Resource resource = new StringResource("{\"item1\": \"one\"}");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
-
-        syncTest("script Put test", new TestBean() {
-            @Override
-            public void run() throws Exception {
-
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
-
-                Resource resource = new StringResource("abc=123\n" +
-                        "def=456\n" +
-                        "ghi=789");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(text("abc=123&def=456&ghi=789")));
-
-        syncTest("script Put test - JSON", new TestBean() {
-            @Override
-            public void run() throws Exception {
-
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "JSON", 500);
-
-                Resource resource = new StringResource("{\"item1\": \"one\"}");
-
-                httpConnection.executeScript(resource, parametersCallback);
-
-            }
-
-        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
+        parametersCallbackMap.put("One", "123");
+        parametersCallbackMap.put("Two", "456");
+        parametersCallbackMap.put("Three", "789");
     }
+
+    @After
+    public void after() {
+        httpConnection = new HTTPConnection();
+        parametersCallback = null;
+        parametersCallbackMap = null;
+    }
+
+    @Test
+    public void testGenerateParams() {
+        Resource resource = new StringResource("abc=$One\n" +
+                "def=$Two\n" +
+                "ghi=$Three");
+
+        List<NameValuePair> result = httpConnection.generateParams(resource, parametersCallbackMap);
+
+        assertTrue(result.get(0).getName().equals("abc"));
+        assertTrue(result.get(0).getValue().equals("123"));
+
+        assertTrue(result.get(1).getName().equals("def"));
+        assertTrue(result.get(1).getValue().equals("456"));
+
+        assertTrue(result.get(2).getName().equals("ghi"));
+        assertTrue(result.get(2).getValue().equals("789"));
+
+    }
+
+    @Test
+    public void testGetJSONString() {
+        Resource jsonResource = new StringResource("{\n" +
+                "    \"item1\": $One,\n" +
+                "    \"item2\": $Two,\n" +
+                "    \"item3\": $Three\n" +
+                "}");
+
+        List<String> list = httpConnection.getJsonStrings(jsonResource);
+
+        assertTrue(list.contains("{"));
+        assertTrue(list.contains("\"item1\": $One,"));
+        assertTrue(list.contains("\"item2\": $Two,"));
+        assertTrue(list.contains("\"item3\": $Three"));
+        assertTrue(list.contains("}"));
+        
+    }
+
+    @Test
+    public void testParseJSON() {
+        List<String> jsonStrings = new ArrayList<>();
+        jsonStrings.add("{");
+        jsonStrings.add("\"item1\": $One,");
+        jsonStrings.add("\"item2\": $Two,");
+        jsonStrings.add("\"item3\": $Three");
+        jsonStrings.add("}");
+
+        String result = httpConnection.parseJSON(jsonStrings, parametersCallbackMap);
+
+        assertTrue(result.equals("{" +
+                "\"item1\":\"123\"," +
+                "\"item2\":\"456\"," +
+                "\"item3\":\"789\"" +
+                "}"));
+        
+    }
+
 }

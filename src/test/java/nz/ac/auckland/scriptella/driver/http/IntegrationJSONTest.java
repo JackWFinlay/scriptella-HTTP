@@ -49,7 +49,7 @@ public class IntegrationJSONTest extends MorcTestBuilder {
     }
 
     // Adapted from AbstractTestCase due to multiple-inheritance issues
-    protected ConfigurationEl loadConfiguration(final String path) {
+    protected ConfigurationEl loadConfiguration(String path) {
         ConfigurationFactory cf = new ConfigurationFactory();
         final URL resource = this.getClass().getClassLoader().getResource(path);
 
