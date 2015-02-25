@@ -26,13 +26,12 @@
 
     <scm>
         <url>git@github.com:uoa-group-applications/scriptella-http.git</url>
-        <connection>scm:git:git://github.com:uoa-group-applications/scriptella-http.git</connection>
+        <connection>scm:git:git@github.com:uoa-group-applications/scriptella-http.git</connection>
         <developerConnection>scm:git:git@github.com:uoa-group-applications/scriptella-http.git</developerConnection>
         <tag>scriptella-http-0.1</tag>
     </scm>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <httpclient-version>4.4</httpclient-version>
         <json-version>20141113</json-version>
         <logback-classic-version>1.1.2</logback-classic-version>
@@ -41,6 +40,7 @@
         <scriptella-drivers-version>1.1</scriptella-drivers-version>
         <slf4j-api-version>1.7.10</slf4j-api-version>
         <jacoco-version>0.7.3.201502191951</jacoco-version>
+        <github.global.server>github</github.global.server>
     </properties>
 
     <dependencies>
@@ -49,6 +49,12 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient-version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -73,6 +79,12 @@
             <groupId>com.javaforge.scriptella</groupId>
             <artifactId>scriptella-core</artifactId>
             <version>${scriptella-core-version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -86,6 +98,7 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api-version}</version>
         </dependency>
+
 
     </dependencies>
 
