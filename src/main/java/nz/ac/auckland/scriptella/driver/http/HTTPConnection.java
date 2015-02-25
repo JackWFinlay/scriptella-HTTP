@@ -66,6 +66,8 @@ public class HTTPConnection extends AbstractConnection {
         this.type = type;
         this.format = format;
         this.timeOut = timeOut;
+        
+        setupHttpClient();
     }
 
     /**
@@ -92,7 +94,29 @@ public class HTTPConnection extends AbstractConnection {
 
         timeOut = Integer.parseInt(properties.getOrDefault("timeout", DEFAULT_TIMEOUT).toString());
         logger.debug("Timeout: {}", timeOut);
+        
+        setupHttpClient();
 
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public int getTimeOut() {
+        return timeOut;
+    }
+
+    public HttpEntityEnclosingRequestBase getHttpRequestBase() {
+        return httpRequestBase;
     }
 
     /**
@@ -123,61 +147,28 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     private void run(Resource resource, ParametersCallback parametersCallback) {
-
-        // Create request configurations and set timeout.
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(timeOut)
-                .setConnectionRequestTimeout(timeOut)
-                .setSocketTimeout(timeOut).build();
-        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        
         logger.debug("Built HttpClient");
 
         ParametersCallbackMap parameters = new ParametersCallbackMap(parametersCallback);
 
         try {
             if (type.toUpperCase().equals(GET)) {
-                logger.debug("Http method is GET.");
-
-                URIBuilder uriBuilder = new URIBuilder(host);
-                uriBuilder.addParameters(generateParams(resource, parameters));
-                logger.debug("Added parameters to uri.");
-
-                httpGet = new HttpGet(uriBuilder.build());
-
-                httpResponse = httpClient.execute(httpGet);
-                logger.debug("HTTP request executed.");
+                executeGetRequest(resource, parameters);
 
             } else {
 
-                if (type.toUpperCase().equals(PUT)) {
-                    httpRequestBase = new HttpPut(host);
-                    logger.debug("Http method is PUT.");
-                } else if (type.toUpperCase().equals(POST)) {
-                    httpRequestBase = new HttpPost(host);
-                    logger.debug("Http method is POST.");
-                } else {
-                    throw new RuntimeException("Invalid http method type");
-                }
+                setRequestType(type);
 
                 if (format.toUpperCase().equals("STRING")) {
 
-                    httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
-                    logger.debug("URLEncodedFormEntity created and set.");
-                } else { // JSON
+                    executeStringRequest(resource, parameters);
+                } else if (format.toUpperCase().equals("JSON")){ // JSON
 
-                    List<String> jsonString = getJsonStrings(resource);
-
-                    StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
-                    logger.debug("JSON parsed.");
-
-                    se.setContentType("application/json; charset=UTF-8");
-
-                    httpRequestBase.setEntity(se);
-                    logger.debug("JSON format entity set for http request.");
+                    executeJsonRequest(resource, parameters);
+                } else {
+                    throw new RuntimeException("Invalid format name. Options are \'String\' and \'JSON\'");
                 }
-
-                httpResponse = httpClient.execute(httpRequestBase);
-                logger.debug("Http request executed.");
             }
 
             logger.info("Response Status: {}", httpResponse.getStatusLine().getStatusCode());
@@ -185,6 +176,65 @@ public class HTTPConnection extends AbstractConnection {
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void setupHttpClient() {
+        // Create request configurations and set timeout.
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(timeOut)
+                .setConnectionRequestTimeout(timeOut)
+                .setSocketTimeout(timeOut).build();
+        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+    }
+
+    public void setRequestType(String type) {
+        if (type.toUpperCase().equals(PUT)) {
+            httpRequestBase = new HttpPut(host);
+            logger.debug("Http method is PUT.");
+        } else if (type.toUpperCase().equals(POST)) {
+            httpRequestBase = new HttpPost(host);
+            logger.debug("Http method is POST.");
+        } else {
+            throw new RuntimeException("Invalid http method type");
+        }
+    }
+
+    public void executeStringRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
+        httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
+        logger.debug("URLEncodedFormEntity created and set.");
+
+        httpResponse = httpClient.execute(httpRequestBase);
+        logger.debug("Http request executed.");
+    }
+
+
+    public void executeJsonRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
+        List<String> jsonString = getJsonStrings(resource);
+
+        StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
+        logger.debug("JSON parsed.");
+
+        se.setContentType("application/json; charset=UTF-8");
+
+        httpRequestBase.setEntity(se);
+        logger.debug("JSON format entity set for http request.");
+
+        httpResponse = httpClient.execute(httpRequestBase);
+        logger.debug("Http request executed.");
+
+    }
+
+    public void executeGetRequest(Resource resource, ParametersCallbackMap parameters) throws URISyntaxException, IOException {
+        logger.debug("Http method is GET.");
+
+        URIBuilder uriBuilder = new URIBuilder(host);
+        uriBuilder.addParameters(generateParams(resource, parameters));
+        logger.debug("Added parameters to uri.");
+
+        httpGet = new HttpGet(uriBuilder.build());
+
+        httpResponse = httpClient.execute(httpGet);
+        logger.debug("HTTP request executed.");
     }
 
 
@@ -286,15 +336,12 @@ public class HTTPConnection extends AbstractConnection {
      */
     @Override
     public void close() throws ProviderException {
-        try {
-            if (httpGet != null) {
-                httpGet.releaseConnection();
-            } else if (httpRequestBase != null) {
-                httpRequestBase.releaseConnection();
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred while trying to release http connection: ", e);
-            throw new RuntimeException();
+
+        if (httpGet != null) {
+            httpGet.releaseConnection();
+        } else if (httpRequestBase != null) {
+            httpRequestBase.releaseConnection();
         }
+
     }
 }

@@ -104,4 +104,18 @@ public class HTTPConnectionTest {
         
     }
 
+    @Test
+    public void testSetRequestType(){
+        // Use this the test constructor to avoid null pointer errors.
+        httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "String", 500);
+        assertTrue(httpConnection.getType().equals("GET"));
+        
+        httpConnection.setRequestType("Put");
+        assertTrue(httpConnection.getHttpRequestBase().getMethod().equals("PUT"));
+
+        httpConnection.setRequestType("Post");
+        assertTrue(httpConnection.getHttpRequestBase().getMethod().equals("POST"));
+        
+    }
+    
 }
