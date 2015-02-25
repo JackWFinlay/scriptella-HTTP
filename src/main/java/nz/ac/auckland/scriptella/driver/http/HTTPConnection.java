@@ -13,6 +13,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scriptella.driver.script.ParametersCallbackMap;
@@ -204,6 +205,7 @@ public class HTTPConnection extends AbstractConnection {
         logger.debug("URLEncodedFormEntity created and set.");
 
         httpResponse = httpClient.execute(httpRequestBase);
+        httpRequestBase.releaseConnection();
         logger.debug("Http request executed.");
     }
 
@@ -220,6 +222,7 @@ public class HTTPConnection extends AbstractConnection {
         logger.debug("JSON format entity set for http request.");
 
         httpResponse = httpClient.execute(httpRequestBase);
+        httpRequestBase.releaseConnection();
         logger.debug("Http request executed.");
 
     }
@@ -234,6 +237,7 @@ public class HTTPConnection extends AbstractConnection {
         httpGet = new HttpGet(uriBuilder.build());
 
         httpResponse = httpClient.execute(httpGet);
+        httpGet.releaseConnection();
         logger.debug("HTTP request executed.");
     }
 
@@ -336,12 +340,6 @@ public class HTTPConnection extends AbstractConnection {
      */
     @Override
     public void close() throws ProviderException {
-
-        if (httpGet != null) {
-            httpGet.releaseConnection();
-        } else if (httpRequestBase != null) {
-            httpRequestBase.releaseConnection();
-        }
-
+        
     }
 }
