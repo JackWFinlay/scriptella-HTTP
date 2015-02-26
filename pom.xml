@@ -9,7 +9,7 @@
 
     <groupId>nz.ac.auckland.scriptella.driver</groupId>
     <artifactId>scriptella-http</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
     <name>scriptella-http</name>
     <description>An HTTP driver for scriptella.</description>
@@ -30,6 +30,8 @@
         <developerConnection>scm:git:git@github.com:uoa-group-applications/scriptella-http.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+
+
 
     <properties>
         <httpclient-version>4.4</httpclient-version>
