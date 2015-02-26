@@ -28,7 +28,7 @@
         <url>git@github.com:uoa-group-applications/scriptella-http.git</url>
         <connection>scm:git:git://github.com:uoa-group-applications/scriptella-http.git</connection>
         <developerConnection>scm:git:git@github.com:uoa-group-applications/scriptella-http.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>scriptella-http-0.1</tag>
     </scm>
 
 
