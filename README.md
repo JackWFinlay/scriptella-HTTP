@@ -1,6 +1,8 @@
 # scriptella-http
 An HTTP connection driver for Scriptella. 
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/nz.ac.auckland.scriptella.driver/scriptella-http/badge.svg)](https://maven-badges.herokuapp.com/maven-central/nz.ac.auckland.scriptella.driver.scriptella-http/scriptella-http)
+
 This driver was reverse-engineered from the source code of other Scriptella drivers, notably the CSV driver. 
 As such, the structure may be a little odd or not as expected from an official driver. 
 
