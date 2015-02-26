@@ -9,7 +9,7 @@
 
     <groupId>nz.ac.auckland.scriptella.driver</groupId>
     <artifactId>scriptella-http</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>scriptella-http</name>
     <description>An HTTP driver for scriptella.</description>
@@ -31,7 +31,18 @@
         <tag>HEAD</tag>
     </scm>
 
-
+    <distributionManagement>
+        <repository>
+            <id>sonatype-staging</id>
+            <name>oss.sonatype.org Staging Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-snapshots</id>
+            <name>oss.sonatype.org Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <properties>
         <httpclient-version>4.4</httpclient-version>
