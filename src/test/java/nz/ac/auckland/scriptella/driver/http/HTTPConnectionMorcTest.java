@@ -3,8 +3,6 @@ package nz.ac.auckland.scriptella.driver.http;
 import nz.ac.auckland.morc.MorcTestBuilder;
 import nz.ac.auckland.morc.TestBean;
 import org.apache.camel.Exchange;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
 import scriptella.configuration.StringResource;
 import scriptella.driver.script.ParametersCallbackMap;
 import scriptella.spi.ParametersCallback;
@@ -33,6 +31,7 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
 
         Resource jsonResource = new StringResource("{\"item1\": \"one\"}");
         
+        Resource plainTextResource = new StringResource("Hello, World!");
         
 
         syncTest("executeGetRequestTest", new TestBean() {
@@ -40,7 +39,7 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
             public void run() throws Exception {
 
                 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "Form", 500);
 
 
                 httpConnection.executeGetRequest(stringResource, parametersCallbackMap);
@@ -48,27 +47,27 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080/abc").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"), header(Exchange.HTTP_URI, "/abc"))));
 
-        syncTest("executeStringRequestPOSTTest", new TestBean() {
+        syncTest("executeFormRequestPOSTTest", new TestBean() {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "Form", 500);
 
                 httpConnection.setRequestType("POST");
-                httpConnection.executeStringRequest(stringResource, parametersCallbackMap);
+                httpConnection.executeFormRequest(stringResource, parametersCallbackMap);
 
             }
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedHeaders(headers(header("abc", "123"), header("def", "456"), header("ghi", "789"))));
 
-        syncTest("executeStringRequestPUTTest", new TestBean() {
+        syncTest("executeFormRequestPUTTest", new TestBean() {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "Form", 500);
 
                 httpConnection.setRequestType("PUT");
-                httpConnection.executeStringRequest(stringResource, parametersCallbackMap);
+                httpConnection.executeFormRequest(stringResource, parametersCallbackMap);
 
             }
 
@@ -98,11 +97,36 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
 
         }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(json("{\"item1\": \"one\"}")));
 
+        syncTest("executePlainTextPutTest", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "Text", 500);
+                httpConnection.setRequestType("PUT");
+                httpConnection.executeJsonRequest(plainTextResource, parametersCallbackMap);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(text("Hello, World!")));
+
+        syncTest("executePlainTextPostTest", new TestBean() {
+            @Override
+            public void run() throws Exception {
+
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "Text", 500);
+                httpConnection.setRequestType("PUT");
+                httpConnection.executeJsonRequest(plainTextResource, parametersCallbackMap);
+
+            }
+
+        }).addExpectation(syncExpectation("jetty:http://localhost:8080").expectedBody(text("Hello, World!")));
+        
+
         syncTest("script GET test", new TestBean() {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080/abc", "GET", "Form", 500);
 
                 httpConnection.executeScript(stringResource, parametersCallback);
 
@@ -114,7 +138,7 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "POST", "Form", 500);
 
                 httpConnection.executeScript(stringResource, parametersCallback);
 
@@ -138,7 +162,7 @@ public class HTTPConnectionMorcTest extends MorcTestBuilder {
             @Override
             public void run() throws Exception {
 
-                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "String", 500);
+                HTTPConnection httpConnection = new HTTPConnection("http://127.0.0.1:8080", "PUT", "Form", 500);
 
                 httpConnection.executeScript(stringResource, parametersCallback);
 

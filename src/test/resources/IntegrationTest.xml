@@ -2,7 +2,7 @@
 <etl>
     <connection id="http" driver="nz.ac.auckland.scriptella.driver.http.Driver" url="http://127.0.0.1:8080">
         type=post
-        format=string
+        format=form
         timeout=1000
     </connection>
     <connection id="csv" driver="csv" url="IntegrationTest.csv"/>

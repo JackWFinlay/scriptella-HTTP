@@ -2,7 +2,6 @@ package nz.ac.auckland.scriptella.driver.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -14,7 +13,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scriptella.driver.script.ParametersCallbackMap;
@@ -43,7 +41,7 @@ public class HTTPConnection extends AbstractConnection {
     private HttpEntityEnclosingRequestBase httpRequestBase;
 
     private final int DEFAULT_TIMEOUT = 0;
-    private final String DEFAULT_FORMAT = "String";
+    private final String DEFAULT_FORMAT = "Text";
     private final String GET = "GET";
     private final String POST = "POST";
     private final String PUT = "PUT";
@@ -167,20 +165,10 @@ public class HTTPConnection extends AbstractConnection {
                     executeJsonRequest(resource, parameters);
                 } else if (format.toUpperCase().equals("FORM")){
 
-                    executeStringRequest(resource, parameters);
+                    executeFormRequest(resource, parameters);
                 } else {
-                    
-                    StringBuilder plainText = new StringBuilder("");
-                    String line;
-                    
-                    try ( BufferedReader br = new BufferedReader(resource.open());) {
-                        while ((line = br.readLine()) != null) {
-                            plainText.append(line);
-                        }
-                        
-                        StringEntity se = new StringEntity(plainText.toString(), "UTF-8");
-                        se.setContentType("text/plain; charset=UTF-8");
-                    }    
+
+                    executePlainTextRequest(resource);
                     
                 }
             }
@@ -189,6 +177,33 @@ public class HTTPConnection extends AbstractConnection {
 
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void executePlainTextRequest(Resource resource) throws IOException {
+        StringBuilder plainText = new StringBuilder("");
+        String line;
+
+        try ( BufferedReader br = new BufferedReader(resource.open());) {
+            while ((line = br.readLine()) != null) {
+                plainText.append(line);
+            }
+
+            StringEntity se = new StringEntity(plainText.toString(), "UTF-8");
+            se.setContentType("text/plain; charset=UTF-8");
+
+            httpRequestBase.setEntity(se);
+
+            try {
+                httpResponse = httpClient.execute(httpRequestBase);
+            } catch ( IOException e ) {
+                logger.error("Error occurred during execution of http request.");
+                throw new RuntimeException(e);
+            } finally {
+                httpRequestBase.releaseConnection();
+            }
+            logger.trace("Http request executed.");
+
         }
     }
 
@@ -213,7 +228,7 @@ public class HTTPConnection extends AbstractConnection {
         }
     }
 
-    public void executeStringRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
+    public void executeFormRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
         httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
         logger.trace("URLEncodedFormEntity created and set.");
 

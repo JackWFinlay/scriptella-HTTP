@@ -35,9 +35,9 @@ Example usage:
 
 Values for type: GET(default), POST, PUT.
 
-Values for format: Form(URL form encoding), JSON, plain text(Default).
+Values for format: Form(URL form encoding), JSON, Text(Default). Format can only be specified for PUT and POST requests,
+GET requests will always use URL form encoding.
 
 Timeout is in ms. default value is 0(infinite).
 
-The driver can only be used in a script tag, queries are not implemented. Variables are generally specified using the dollar sign ($),
-but can be used without it. The variables here represent the names of the headers in the CSV file.
+The driver can only be used in a script tag, queries are not implemented. Variables are generally specified using the dollar sign ($). The variables here represent the names of the headers in the CSV file.
