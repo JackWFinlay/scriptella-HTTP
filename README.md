@@ -35,7 +35,7 @@ Example usage:
 
 Values for type: GET(default), POST, PUT.
 
-Values for format: String(default), JSON.
+Values for format: Form(URL form encoding), JSON, plain text(Default).
 
 Timeout is in ms. default value is 0(infinite).
 
