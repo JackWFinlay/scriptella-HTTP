@@ -2,6 +2,7 @@ package nz.ac.auckland.scriptella.driver.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -85,16 +86,16 @@ public class HTTPConnection extends AbstractConnection {
         properties.putAll(connectionParameters.getUrlQueryMap());
 
         host = connectionParameters.getUrl();
-        logger.debug("Host: {}", host);
+        logger.trace("Host: {}", host);
 
         type = properties.getProperty("type", GET);
-        logger.debug("Type: {}", type);
+        logger.trace("Type: {}", type);
 
         format = properties.getProperty("format", DEFAULT_FORMAT);
-        logger.debug("Format: {}", format);
+        logger.trace("Format: {}", format);
 
         timeOut = Integer.parseInt(properties.getOrDefault("timeout", DEFAULT_TIMEOUT).toString());
-        logger.debug("Timeout: {}", timeOut);
+        logger.trace("Timeout: {}", timeOut);
         
         setupHttpClient();
 
@@ -131,7 +132,7 @@ public class HTTPConnection extends AbstractConnection {
     public void executeScript(Resource resource, ParametersCallback parametersCallback) throws ProviderException {
         run(resource, parametersCallback);
 
-        logger.debug("Operation complete for current entry.");
+        logger.trace("Operation complete for current entry.");
     }
 
     /**
@@ -149,7 +150,7 @@ public class HTTPConnection extends AbstractConnection {
 
     private void run(Resource resource, ParametersCallback parametersCallback) {
         
-        logger.debug("Built HttpClient");
+        logger.trace("Built HttpClient");
 
         ParametersCallbackMap parameters = new ParametersCallbackMap(parametersCallback);
 
@@ -161,14 +162,26 @@ public class HTTPConnection extends AbstractConnection {
 
                 setRequestType(type);
 
-                if (format.toUpperCase().equals("STRING")) {
-
-                    executeStringRequest(resource, parameters);
-                } else if (format.toUpperCase().equals("JSON")){ // JSON
+                if (format.toUpperCase().equals("JSON")){ // JSON
 
                     executeJsonRequest(resource, parameters);
+                } else if (format.toUpperCase().equals("FORM")){
+
+                    executeStringRequest(resource, parameters);
                 } else {
-                    throw new RuntimeException("Invalid format name. Options are \'String\' and \'JSON\'");
+                    
+                    StringBuilder plainText = new StringBuilder("");
+                    String line;
+                    
+                    try ( BufferedReader br = new BufferedReader(resource.open());) {
+                        while ((line = br.readLine()) != null) {
+                            plainText.append(line);
+                        }
+                        
+                        StringEntity se = new StringEntity(plainText.toString(), "UTF-8");
+                        se.setContentType("text/plain; charset=UTF-8");
+                    }    
+                    
                 }
             }
 
@@ -191,10 +204,10 @@ public class HTTPConnection extends AbstractConnection {
     public void setRequestType(String type) {
         if (type.toUpperCase().equals(PUT)) {
             httpRequestBase = new HttpPut(host);
-            logger.debug("Http method is PUT.");
+            logger.trace("Http method is PUT.");
         } else if (type.toUpperCase().equals(POST)) {
             httpRequestBase = new HttpPost(host);
-            logger.debug("Http method is POST.");
+            logger.trace("Http method is POST.");
         } else {
             throw new RuntimeException("Invalid http method type");
         }
@@ -202,74 +215,86 @@ public class HTTPConnection extends AbstractConnection {
 
     public void executeStringRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
         httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
-        logger.debug("URLEncodedFormEntity created and set.");
+        logger.trace("URLEncodedFormEntity created and set.");
 
-        httpResponse = httpClient.execute(httpRequestBase);
-        httpRequestBase.releaseConnection();
-        logger.debug("Http request executed.");
+        try {
+            httpResponse = httpClient.execute(httpRequestBase);
+        } catch ( IOException e ) {
+            logger.error("Error occurred during execution of http request.");
+            throw new RuntimeException(e);
+        } finally {
+            httpRequestBase.releaseConnection();
+        }
+        logger.trace("Http request executed.");
     }
 
 
-    public void executeJsonRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
+    public void executeJsonRequest(Resource resource, ParametersCallbackMap parameters) {
         List<String> jsonString = getJsonStrings(resource);
 
         StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
-        logger.debug("JSON parsed.");
+        logger.trace("JSON parsed.");
 
         se.setContentType("application/json; charset=UTF-8");
 
         httpRequestBase.setEntity(se);
-        logger.debug("JSON format entity set for http request.");
+        logger.trace("JSON format entity set for http request.");
 
-        httpResponse = httpClient.execute(httpRequestBase);
-        httpRequestBase.releaseConnection();
+        try {
+            httpResponse = httpClient.execute(httpRequestBase);
+        } catch ( IOException e ) {
+            logger.error("Error occurred during execution of http request.");
+            throw new RuntimeException(e);
+        } finally {
+            httpRequestBase.releaseConnection();
+        }
+
         logger.debug("Http request executed.");
 
     }
 
-    public void executeGetRequest(Resource resource, ParametersCallbackMap parameters) throws URISyntaxException, IOException {
-        logger.debug("Http method is GET.");
+    public void executeGetRequest(Resource resource, ParametersCallbackMap parameters) throws URISyntaxException {
+        logger.trace("Http method is GET.");
 
         URIBuilder uriBuilder = new URIBuilder(host);
         uriBuilder.addParameters(generateParams(resource, parameters));
-        logger.debug("Added parameters to uri.");
+        logger.trace("Added parameters to uri.");
 
         httpGet = new HttpGet(uriBuilder.build());
 
-        httpResponse = httpClient.execute(httpGet);
-        httpGet.releaseConnection();
+        try {
+            httpResponse = httpClient.execute(httpGet);
+        } catch (IOException e){
+            logger.error("Error occurred during execution of http request.");
+            throw new RuntimeException(e);
+        } finally {
+            httpGet.releaseConnection();
+        }
+        
         logger.debug("HTTP request executed.");
     }
 
 
     public List<NameValuePair> generateParams(Resource resource, ParametersCallbackMap parameters) {
-        BufferedReader br = null;
-
-        try {
-            br = new BufferedReader(resource.open());
-            logger.debug("Resource opened for reading.");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         String line;
         List<NameValuePair> nameValuePairList = new ArrayList<>();
 
-        try {
+        try ( BufferedReader br = new BufferedReader(resource.open());){
             while ((line = br.readLine()) != null) {
                 String[] components = line.trim().split("=");
                 if (components.length > 1) {
                     // Remove "$" and double-quotes used to make driver work as user would expect based on csv driver and others.
 
                     String key = components[1].replace("$", "").replace("?", "").replace("\"", "");
-                    logger.debug("Stripped \'$\' and \'?\' from variables.");
+                    logger.trace("Stripped \'$\' and \'?\' from variables.");
                     if (parameters.containsKey(key)) {
                         nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
 
-                        logger.debug("Variable found, added to List.");
+                        logger.trace("Variable found, added to List.");
                     } else {
                         nameValuePairList.add(new BasicNameValuePair(components[0], components[1]));
-                        logger.debug("Line contains no variables, adding to list as literal.");
+                        logger.trace("Line contains no variables, adding to list as literal.");
                     }
                 }
             }
@@ -282,19 +307,12 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     public List<String> getJsonStrings(Resource resource) {
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(resource.open());
-            logger.debug("Resource opened for reading.");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         // Using an array list as "\n" in strings tends to break things.
         List<String> jsonString = new ArrayList<>();
         String line;
 
-        try {
+        try (BufferedReader br = new BufferedReader(resource.open())){
             while ((line = br.readLine()) != null) {
 
                 jsonString.add(line.trim());
@@ -320,7 +338,7 @@ public class HTTPConnection extends AbstractConnection {
                     String key = split[1].trim().replace("$", "").replace(",", "");
                     split[1] = String.format("%s%s%s%s", "\"", ((String) parameters.getParameter(key)), "\"", comma);
 
-                    logger.debug("JSON string contains variable, replaced with value.");
+                    logger.trace("JSON string contains variable, replaced with value.");
                 }
 
                 parsedJSON.append(String.format("%s%s%s", split[0], ":", split[1]));
@@ -329,6 +347,7 @@ public class HTTPConnection extends AbstractConnection {
                 parsedJSON.append(jsonLine);
             }
         }
+        logger.debug("Outgoing JSON request: {}", parsedJSON.toString());
 
         return parsedJSON.toString();
     }
