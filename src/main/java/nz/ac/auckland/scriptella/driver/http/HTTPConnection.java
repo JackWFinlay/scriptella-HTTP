@@ -1,5 +1,6 @@
 package nz.ac.auckland.scriptella.driver.http;
 
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -66,7 +67,7 @@ public class HTTPConnection extends AbstractConnection {
         this.type = type;
         this.format = format;
         this.timeOut = timeOut;
-        
+
         setupHttpClient();
     }
 
@@ -94,7 +95,7 @@ public class HTTPConnection extends AbstractConnection {
 
         timeOut = Integer.parseInt(properties.getOrDefault("timeout", DEFAULT_TIMEOUT).toString());
         logger.trace("Timeout: {}", timeOut);
-        
+
         setupHttpClient();
 
     }
@@ -147,7 +148,7 @@ public class HTTPConnection extends AbstractConnection {
     }
 
     private void run(Resource resource, ParametersCallback parametersCallback) {
-        
+
         logger.trace("Built HttpClient");
 
         ParametersCallbackMap parameters = new ParametersCallbackMap(parametersCallback);
@@ -160,16 +161,19 @@ public class HTTPConnection extends AbstractConnection {
 
                 setRequestType(type);
 
-                if (format.toUpperCase().equals("JSON")){ // JSON
+                if (format.toUpperCase().equals("JSON")) { // JSON
 
-                    executeJsonRequest(resource, parameters);
-                } else if (format.toUpperCase().equals("FORM")){
+                    executeFormattedTextRequest(resource, parameters, "JSON");
+                } else if (format.toUpperCase().equals("XML")) { // JSON
+
+                    executeFormattedTextRequest(resource, parameters, "XML");
+                } else if (format.toUpperCase().equals("FORM")) {
 
                     executeFormRequest(resource, parameters);
                 } else {
 
                     executePlainTextRequest(resource);
-                    
+
                 }
             }
 
@@ -180,32 +184,7 @@ public class HTTPConnection extends AbstractConnection {
         }
     }
 
-    private void executePlainTextRequest(Resource resource) throws IOException {
-        StringBuilder plainText = new StringBuilder("");
-        String line;
 
-        try ( BufferedReader br = new BufferedReader(resource.open());) {
-            while ((line = br.readLine()) != null) {
-                plainText.append(line);
-            }
-
-            StringEntity se = new StringEntity(plainText.toString(), "UTF-8");
-            se.setContentType("text/plain; charset=UTF-8");
-
-            httpRequestBase.setEntity(se);
-
-            try {
-                httpResponse = httpClient.execute(httpRequestBase);
-            } catch ( IOException e ) {
-                logger.error("Error occurred during execution of http request.");
-                throw new RuntimeException(e);
-            } finally {
-                httpRequestBase.releaseConnection();
-            }
-            logger.trace("Http request executed.");
-
-        }
-    }
 
     private void setupHttpClient() {
         // Create request configurations and set timeout.
@@ -228,13 +207,33 @@ public class HTTPConnection extends AbstractConnection {
         }
     }
 
+    public String template(Resource resource, ParametersCallbackMap parameters) {
+
+        StringBuilder plainText = new StringBuilder("");
+        String line;
+
+        try (BufferedReader br = new BufferedReader(resource.open());) {
+            while ((line = br.readLine()) != null) {
+                plainText.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        StrSubstitutor strSubstitutor = new StrSubstitutor(parameters);
+        String resolvedString = strSubstitutor.replace(plainText.toString());
+
+        return resolvedString;
+    }
+
     public void executeFormRequest(Resource resource, ParametersCallbackMap parameters) throws IOException {
         httpRequestBase.setEntity(new UrlEncodedFormEntity(generateParams(resource, parameters)));
         logger.trace("URLEncodedFormEntity created and set.");
 
         try {
             httpResponse = httpClient.execute(httpRequestBase);
-        } catch ( IOException e ) {
+        } catch (IOException e) {
             logger.error("Error occurred during execution of http request.");
             throw new RuntimeException(e);
         } finally {
@@ -245,9 +244,7 @@ public class HTTPConnection extends AbstractConnection {
 
 
     public void executeJsonRequest(Resource resource, ParametersCallbackMap parameters) {
-        List<String> jsonString = getJsonStrings(resource);
-
-        StringEntity se = new StringEntity(parseJSON(jsonString, parameters), "UTF-8");
+        StringEntity se = new StringEntity(template(resource, parameters), "UTF-8");
         logger.trace("JSON parsed.");
 
         se.setContentType("application/json; charset=UTF-8");
@@ -257,7 +254,33 @@ public class HTTPConnection extends AbstractConnection {
 
         try {
             httpResponse = httpClient.execute(httpRequestBase);
-        } catch ( IOException e ) {
+        } catch (IOException e) {
+            logger.error("Error occurred during execution of http request.");
+            throw new RuntimeException(e);
+        } finally {
+            httpRequestBase.releaseConnection();
+        }
+
+        logger.debug("Http request executed.");
+
+    }
+
+    public void executeFormattedTextRequest(Resource resource, ParametersCallbackMap parameters, String contentType) {
+        StringEntity se = new StringEntity(template(resource, parameters), "UTF-8");
+        logger.trace("Formatted text parsed.");
+
+        if (contentType.equals("XML")) {
+            se.setContentType("application/xml; charset=UTF-8");
+        } else if (contentType.equals("JSON")) {
+            se.setContentType("application/json; charset=UTF-8");
+        }
+
+        httpRequestBase.setEntity(se);
+        logger.trace("Format entity set for http request.");
+
+        try {
+            httpResponse = httpClient.execute(httpRequestBase);
+        } catch (IOException e) {
             logger.error("Error occurred during execution of http request.");
             throw new RuntimeException(e);
         } finally {
@@ -279,14 +302,41 @@ public class HTTPConnection extends AbstractConnection {
 
         try {
             httpResponse = httpClient.execute(httpGet);
-        } catch (IOException e){
+        } catch (IOException e) {
             logger.error("Error occurred during execution of http request.");
             throw new RuntimeException(e);
         } finally {
             httpGet.releaseConnection();
         }
-        
+
         logger.debug("HTTP request executed.");
+    }
+
+    private void executePlainTextRequest(Resource resource) throws IOException {
+        StringBuilder plainText = new StringBuilder("");
+        String line;
+
+        try (BufferedReader br = new BufferedReader(resource.open());) {
+            while ((line = br.readLine()) != null) {
+                plainText.append(line);
+            }
+
+            StringEntity se = new StringEntity(plainText.toString(), "UTF-8");
+            se.setContentType("text/plain; charset=UTF-8");
+
+            httpRequestBase.setEntity(se);
+
+            try {
+                httpResponse = httpClient.execute(httpRequestBase);
+            } catch (IOException e) {
+                logger.error("Error occurred during execution of http request.");
+                throw new RuntimeException(e);
+            } finally {
+                httpRequestBase.releaseConnection();
+            }
+            logger.trace("Http request executed.");
+
+        }
     }
 
 
@@ -295,14 +345,15 @@ public class HTTPConnection extends AbstractConnection {
         String line;
         List<NameValuePair> nameValuePairList = new ArrayList<>();
 
-        try ( BufferedReader br = new BufferedReader(resource.open());){
+        try (BufferedReader br = new BufferedReader(resource.open());) {
             while ((line = br.readLine()) != null) {
-                String[] components = line.trim().split("=");
-                if (components.length > 1) {
-                    // Remove "$" and double-quotes used to make driver work as user would expect based on csv driver and others.
+                StrSubstitutor sub = new StrSubstitutor(parameters);
+                String resolvedString = sub.replace(line.toString());
+                String[] components = resolvedString.trim().split("=");
 
-                    String key = components[1].replace("$", "").replace("?", "").replace("\"", "");
-                    logger.trace("Stripped \'$\' and \'?\' from variables.");
+                if (components.length > 1) {
+
+                    String key = components[1];
                     if (parameters.containsKey(key)) {
                         nameValuePairList.add(new BasicNameValuePair(components[0], (String) parameters.getParameter(key)));
 
@@ -321,51 +372,6 @@ public class HTTPConnection extends AbstractConnection {
         return nameValuePairList;
     }
 
-    public List<String> getJsonStrings(Resource resource) {
-
-        // Using an array list as "\n" in strings tends to break things.
-        List<String> jsonString = new ArrayList<>();
-        String line;
-
-        try (BufferedReader br = new BufferedReader(resource.open())){
-            while ((line = br.readLine()) != null) {
-
-                jsonString.add(line.trim());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return jsonString;
-    }
-
-    public String parseJSON(List<String> jsonString, ParametersCallbackMap parameters) {
-
-        StringBuilder parsedJSON = new StringBuilder("");
-
-        for (String jsonLine : jsonString) {
-            // Check if line has a comma as it is stripped out if value is replaced.
-            String comma = jsonLine.contains(",") ? "," : "";
-
-            String[] split = jsonLine.trim().split(":");
-            if (split.length > 1) {
-                // Check if value is meant to be a variable and not literal value with "$" in it.
-                if (split[1].contains("$") && !split[1].contains("\"")) {
-                    String key = split[1].trim().replace("$", "").replace(",", "");
-                    split[1] = String.format("%s%s%s%s", "\"", ((String) parameters.getParameter(key)), "\"", comma);
-
-                    logger.trace("JSON string contains variable, replaced with value.");
-                }
-
-                parsedJSON.append(String.format("%s%s%s", split[0], ":", split[1]));
-
-            } else {
-                parsedJSON.append(jsonLine);
-            }
-        }
-        logger.debug("Outgoing JSON request: {}", parsedJSON.toString());
-
-        return parsedJSON.toString();
-    }
 
     /**
      * Releases HTTP connections.
@@ -374,6 +380,6 @@ public class HTTPConnection extends AbstractConnection {
      */
     @Override
     public void close() throws ProviderException {
-        
+
     }
 }

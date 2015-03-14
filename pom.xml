@@ -53,6 +53,7 @@
         <scriptella-drivers-version>1.1</scriptella-drivers-version>
         <slf4j-api-version>1.7.10</slf4j-api-version>
         <jacoco-version>0.7.3.201502191951</jacoco-version>
+        <velocity-version>1.7</velocity-version>
         <github.global.server>github</github.global.server>
     </properties>
 
@@ -110,6 +111,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>${velocity-version}</version>
         </dependency>
 
 
