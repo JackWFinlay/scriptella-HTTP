@@ -9,7 +9,6 @@ import scriptella.driver.script.ParametersCallbackMap;
 import scriptella.spi.ParametersCallback;
 import scriptella.spi.Resource;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -50,9 +49,10 @@ public class HTTPConnectionTest {
 
     @Test
     public void testGenerateParams() {
-        Resource resource = new StringResource("abc=$One\n" +
-                "def=$Two\n" +
-                "ghi=$Three");
+        Resource resource = new StringResource(
+                "abc=${One}\n" +
+                        "def=${Two}\n" +
+                        "ghi=${Three}");
 
         List<NameValuePair> result = httpConnection.generateParams(resource, parametersCallbackMap);
 
@@ -67,42 +67,6 @@ public class HTTPConnectionTest {
 
     }
 
-    @Test
-    public void testGetJSONString() {
-        Resource jsonResource = new StringResource("{\n" +
-                "    \"item1\": $One,\n" +
-                "    \"item2\": $Two,\n" +
-                "    \"item3\": $Three\n" +
-                "}");
-
-        List<String> list = httpConnection.getJsonStrings(jsonResource);
-
-        assertTrue(list.contains("{"));
-        assertTrue(list.contains("\"item1\": $One,"));
-        assertTrue(list.contains("\"item2\": $Two,"));
-        assertTrue(list.contains("\"item3\": $Three"));
-        assertTrue(list.contains("}"));
-        
-    }
-
-    @Test
-    public void testParseJSON() {
-        List<String> jsonStrings = new ArrayList<>();
-        jsonStrings.add("{");
-        jsonStrings.add("\"item1\": $One,");
-        jsonStrings.add("\"item2\": $Two,");
-        jsonStrings.add("\"item3\": $Three");
-        jsonStrings.add("}");
-
-        String result = httpConnection.parseJSON(jsonStrings, parametersCallbackMap);
-
-        assertTrue(result.equals("{" +
-                "\"item1\":\"123\"," +
-                "\"item2\":\"456\"," +
-                "\"item3\":\"789\"" +
-                "}"));
-        
-    }
 
     @Test
     public void testSetRequestType(){

@@ -10,9 +10,9 @@
     <query connection-id="csv">
         <!-- Empty query means select all columns -->
         <script connection-id="http">
-            abc=$One
-            def=$Two
-            ghi=$Three
+            abc=${One}
+            def=${Two}
+            ghi=${Three}
         </script>
     </query>
 </etl>

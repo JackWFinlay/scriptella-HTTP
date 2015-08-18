@@ -24,9 +24,9 @@ Example usage:
     <query connection-id="csv">
         <!-- Empty query means select all columns -->
         <script connection-id="http">
-            abc=$One
-            def=$Two
-            ghi=$Three
+            abc=${One}
+            def=${Two}
+            ghi=${Three}
 
         </script>
     </query>
@@ -35,9 +35,10 @@ Example usage:
 
 Values for type: GET(default), POST, PUT.
 
-Values for format: Form(URL form encoding), JSON, Text(Default). Format can only be specified for PUT and POST requests,
-GET requests will always use URL form encoding.
+Values for format: Form(URL form encoding), JSON, XML, Text(Default). Format can only be specified for PUT and POST
+requests, GET requests will always use URL form encoding.
 
 Timeout is in ms. default value is 0(infinite).
 
-The driver can only be used in a script tag, queries are not implemented. Variables are generally specified using the dollar sign ($). The variables here represent the names of the headers in the CSV file.
+The driver can only be used in a script tag, queries are not implemented. Variables are specified int the format
+"${variable-name}". The variables here represent the names of the headers in the CSV file.
