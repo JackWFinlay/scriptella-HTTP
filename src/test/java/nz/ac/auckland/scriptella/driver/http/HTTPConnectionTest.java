@@ -49,9 +49,10 @@ public class HTTPConnectionTest {
 
     @Test
     public void testGenerateParams() {
-        Resource resource = new StringResource("abc=$One\n" +
-                "def=$Two\n" +
-                "ghi=$Three");
+        Resource resource = new StringResource(
+                "abc=${One}\n" +
+                        "def=${Two}\n" +
+                        "ghi=${Three}");
 
         List<NameValuePair> result = httpConnection.generateParams(resource, parametersCallbackMap);
 
